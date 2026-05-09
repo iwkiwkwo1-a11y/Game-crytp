@@ -9,6 +9,13 @@ export interface PricePoint {
   volume: number;
 }
 
+export interface Holder {
+  address: string;
+  name: string;
+  balance: number; // Token balance
+  isPlayer: boolean;
+}
+
 export interface Coin {
   id: string;
   name: string;
@@ -23,24 +30,32 @@ export interface Coin {
   developerTokens: number; // Token yang dipegang pemain
 }
 
+export interface PlayerWallet {
+  address: string;
+  username: string;
+}
+
 export interface GameState {
   // Player State
   playerMoney: number;
+  playerWallet: PlayerWallet | null;
   currency: Currency;
 
   // Active Game State
   activeCoin: Coin | null;
   priceHistory: PricePoint[];
+  coinHolders: Record<string, Holder>;
 
   // Actions
   setCurrency: (currency: Currency) => void;
+  createWallet: (username: string) => void;
   deployCoin: (name: string, symbol: string, supply: number, initialLiquidity: number) => void;
   marketing: (cost: number, hypeBoost: number) => void;
   burnTokens: (amount: number) => void;
   rugPull: () => void;
 
   // Game Loop Actions
-  updateMarket: () => void; // Dipanggil setiap tick
+  updateMarket: () => void;
 
   // System
   resetGame: () => void;

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { formatMoney } from './AppLayout';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
@@ -10,6 +10,15 @@ export default function TradingDashboard() {
   const activeCoin = useGameStore((state) => state.activeCoin);
   const priceHistory = useGameStore((state) => state.priceHistory);
   const currency = useGameStore((state) => state.currency);
+  const coinHolders = useGameStore((state) => state.coinHolders);
+  const [activeTab, setActiveTab] = useState<'orderbook' | 'holders'>('orderbook');
+
+  const topHolders = useMemo(() => {
+    return Object.values(coinHolders)
+      .filter(h => h.balance > 0)
+      .sort((a, b) => b.balance - a.balance)
+      .slice(0, 10);
+  }, [coinHolders]);
 
   const currentPrice = useMemo(() => {
     if (!activeCoin) return 0;
@@ -150,7 +159,7 @@ export default function TradingDashboard() {
                 <Tooltip
                   contentStyle={{ backgroundColor: '#181a20', borderColor: '#2b3139', color: '#eaecef' }}
                   itemStyle={{ color: '#eaecef' }}
-                  formatter={(value: any) => [formatPriceDecimals(Number(value)), 'Price']}
+                  formatter={(value: unknown) => [formatPriceDecimals(Number(value)), 'Price']}
                   labelStyle={{ color: '#848e9c' }}
                 />
                 <Area
@@ -167,13 +176,28 @@ export default function TradingDashboard() {
         </div>
       </div>
 
-      {/* Right Column: Order Book */}
-      <div className="w-full lg:w-72 bg-[#181a20] border border-gray-800 rounded-sm flex flex-col shrink-0">
-        <div className="p-3 border-b border-gray-800">
-          <h3 className="text-sm font-semibold text-gray-200">Order Book</h3>
+      {/* Right Column: Order Book & Holders */}
+      <div className="w-full lg:w-80 bg-[#181a20] border border-gray-800 rounded-sm flex flex-col shrink-0">
+
+        {/* Tab Navigation */}
+        <div className="flex border-b border-gray-800">
+          <button
+            className={`flex-1 p-3 text-sm font-semibold text-center transition-colors ${activeTab === 'orderbook' ? 'text-white border-b-2 border-[#fcd535]' : 'text-gray-500 hover:text-gray-300'}`}
+            onClick={() => setActiveTab('orderbook')}
+          >
+            Order Book
+          </button>
+          <button
+            className={`flex-1 p-3 text-sm font-semibold text-center transition-colors ${activeTab === 'holders' ? 'text-white border-b-2 border-[#fcd535]' : 'text-gray-500 hover:text-gray-300'}`}
+            onClick={() => setActiveTab('holders')}
+          >
+            Top Holders
+          </button>
         </div>
 
-        <div className="flex-1 p-2 flex flex-col text-xs font-mono">
+        <div className="flex-1 p-2 flex flex-col text-xs font-mono overflow-y-auto">
+          {activeTab === 'orderbook' ? (
+            <>
           <div className="flex justify-between text-gray-500 mb-2 px-2">
             <span>Price(USD)</span>
             <span>Amount({activeCoin.symbol})</span>
@@ -207,6 +231,42 @@ export default function TradingDashboard() {
               </div>
             ))}
           </div>
+            </>
+          ) : (
+            <div className="flex flex-col gap-1">
+               <div className="flex justify-between text-gray-500 mb-2 px-2">
+                 <span>Wallet</span>
+                 <span>Holdings</span>
+               </div>
+               {topHolders.map((holder, i) => {
+                 const percentage = (holder.balance / activeCoin.totalSupply) * 100;
+                 return (
+                   <div key={holder.address} className="flex justify-between items-center py-2 px-2 border-b border-gray-800/50 hover:bg-gray-800/30">
+                     <div className="flex flex-col gap-1 overflow-hidden pr-2">
+                       <span className={`font-semibold truncate ${holder.isPlayer ? 'text-[#fcd535]' : 'text-gray-300'}`}>
+                         {holder.name} {i === 0 && '👑'}
+                       </span>
+                       <span className="text-[10px] text-gray-500 truncate">
+                         {holder.address.substring(0, 6)}...{holder.address.substring(holder.address.length - 4)}
+                       </span>
+                     </div>
+                     <div className="flex flex-col items-end shrink-0">
+                       <span className="text-white">
+                         {holder.balance >= 1000000
+                           ? (holder.balance / 1000000).toFixed(2) + 'M'
+                           : holder.balance >= 1000
+                             ? (holder.balance / 1000).toFixed(2) + 'K'
+                             : holder.balance.toFixed(0)}
+                       </span>
+                       <span className={`${percentage > 5 ? 'text-orange-400' : 'text-gray-400'} text-[10px]`}>
+                         {percentage.toFixed(2)}%
+                       </span>
+                     </div>
+                   </div>
+                 );
+               })}
+            </div>
+          )}
         </div>
       </div>
     </div>

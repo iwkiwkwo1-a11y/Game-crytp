@@ -2,6 +2,7 @@
 
 import React from 'react';
 import AppLayout from '@/components/AppLayout';
+import ConnectWallet from '@/components/ConnectWallet';
 import CreateCoinForm from '@/components/CreateCoinForm';
 import TradingDashboard from '@/components/TradingDashboard';
 import PlayerActions from '@/components/PlayerActions';
@@ -9,6 +10,7 @@ import { useGameStore } from '@/store/gameStore';
 import { useGameLoop } from '@/hooks/useGameLoop';
 
 export default function Home() {
+  const playerWallet = useGameStore((state) => state.playerWallet);
   const activeCoin = useGameStore((state) => state.activeCoin);
 
   // Start the game loop (market simulation)
@@ -28,7 +30,9 @@ export default function Home() {
 
   return (
     <AppLayout>
-      {!activeCoin ? (
+      {!playerWallet ? (
+        <ConnectWallet />
+      ) : !activeCoin ? (
         <CreateCoinForm />
       ) : (
         <div className="flex flex-col w-full h-full">

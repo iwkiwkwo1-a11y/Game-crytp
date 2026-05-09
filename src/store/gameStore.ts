@@ -1,22 +1,42 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { GameState, Coin, PricePoint } from '../types/game';
+import { GameState, Coin, PricePoint, Holder } from '../types/game';
 
 const INITIAL_MONEY = 10000;
+
+function generateFakeAddress() {
+  const chars = '0123456789abcdef';
+  let addr = '0x';
+  for (let i = 0; i < 40; i++) {
+    addr += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return addr;
+}
 
 export const useGameStore = create<GameState>()(
   persist(
     (set, get) => ({
       playerMoney: INITIAL_MONEY,
+      playerWallet: null,
       currency: 'USD',
       activeCoin: null,
       priceHistory: [],
+      coinHolders: {},
 
       setCurrency: (currency) => set({ currency }),
 
+      createWallet: (username: string) => {
+        set({
+          playerWallet: {
+            username,
+            address: generateFakeAddress()
+          }
+        });
+      },
+
       deployCoin: (name, symbol, supply, initialLiquidity) => {
-        const { playerMoney } = get();
-        if (playerMoney < initialLiquidity) return;
+        const { playerMoney, playerWallet } = get();
+        if (playerMoney < initialLiquidity || !playerWallet) return;
 
         // Player puts in initialLiquidity, and all supply into the pool initially
         // but maybe keeps some dev tokens? Let's say 10% dev tokens.
@@ -47,10 +67,39 @@ export const useGameStore = create<GameState>()(
           volume: 0,
         };
 
+        // Initialize Holders
+        const holders: Record<string, Holder> = {
+            [playerWallet.address]: {
+                address: playerWallet.address,
+                name: playerWallet.username + ' (Dev)',
+                balance: devTokens,
+                isPlayer: true
+            },
+            'liquidity_pool': {
+                address: '0x000000000000000000000000000000000000dead', // Fake burn/pool address
+                name: 'Liquidity Pool',
+                balance: poolTokens,
+                isPlayer: false
+            }
+        };
+
+        // Create some initial bot wallets
+        const botNames = ['SniperBot', 'Whale_77', 'DegenApe', 'ChadTrader', 'NPC_1337'];
+        for (const bName of botNames) {
+            const addr = generateFakeAddress();
+            holders[addr] = {
+                address: addr,
+                name: bName,
+                balance: 0,
+                isPlayer: false
+            };
+        }
+
         set({
           playerMoney: playerMoney - initialLiquidity,
           activeCoin: newCoin,
           priceHistory: [initialPricePoint],
+          coinHolders: holders
         });
       },
 
@@ -68,9 +117,14 @@ export const useGameStore = create<GameState>()(
       },
 
       burnTokens: (amount) => {
-        const { activeCoin } = get();
-        if (!activeCoin || activeCoin.isRugPulled) return;
+        const { activeCoin, coinHolders, playerWallet } = get();
+        if (!activeCoin || activeCoin.isRugPulled || !playerWallet) return;
         if (activeCoin.developerTokens < amount) return;
+
+        const updatedHolders = { ...coinHolders };
+        if (updatedHolders[playerWallet.address]) {
+            updatedHolders[playerWallet.address].balance -= amount;
+        }
 
         set({
           activeCoin: {
@@ -79,12 +133,13 @@ export const useGameStore = create<GameState>()(
             totalSupply: activeCoin.totalSupply - amount,
             circulatingSupply: activeCoin.circulatingSupply - amount,
           },
+          coinHolders: updatedHolders
         });
       },
 
       rugPull: () => {
-        const { activeCoin, playerMoney } = get();
-        if (!activeCoin || activeCoin.isRugPulled) return;
+        const { activeCoin, playerMoney, coinHolders, playerWallet } = get();
+        if (!activeCoin || activeCoin.isRugPulled || !playerWallet) return;
 
         // Sell all dev tokens
         // AMM pricing: constant product x * y = k
@@ -94,6 +149,11 @@ export const useGameStore = create<GameState>()(
 
         // Fee = 0 for dev selling
         const dy = y - (x * y) / (x + dx);
+
+        const updatedHolders = { ...coinHolders };
+        if (updatedHolders[playerWallet.address]) {
+            updatedHolders[playerWallet.address].balance = 0;
+        }
 
         set({
           playerMoney: playerMoney + dy,
@@ -105,11 +165,12 @@ export const useGameStore = create<GameState>()(
             reserveCurrency: y - dy,
             hype: 0,
           },
+          coinHolders: updatedHolders
         });
       },
 
       updateMarket: () => {
-        const { activeCoin, priceHistory } = get();
+        const { activeCoin, priceHistory, coinHolders } = get();
         if (!activeCoin || activeCoin.isRugPulled) return;
 
         const now = Date.now();
@@ -118,6 +179,12 @@ export const useGameStore = create<GameState>()(
         let newReserveCurrency = activeCoin.reserveCurrency;
         let newHype = activeCoin.hype;
         let volume = 0;
+        const updatedHolders = { ...coinHolders };
+
+        // Helper to pick a random non-player, non-LP bot
+        const botAddresses = Object.keys(updatedHolders).filter(addr =>
+            !updatedHolders[addr].isPlayer && addr !== 'liquidity_pool'
+        );
 
         // --- BOT SIMULATION ---
         // Constant product: k = reserveToken * reserveCurrency
@@ -137,15 +204,20 @@ export const useGameStore = create<GameState>()(
         // Determine trade size (0.1% to 5% of pool) depending on activity
         const tradePct = (Math.random() * 0.04 + 0.01) * activityLevel;
 
+        let botTokensGained = 0;
+        let botTokensLost = 0;
+
         if (isBuy) {
             // Bot Buys (Adds currency, removes token)
             const dy = newReserveCurrency * tradePct; // Currency spent
             const newY = newReserveCurrency + dy;
             const newX = k / newY;
+            const tokensReceived = newReserveToken - newX;
 
             newReserveCurrency = newY;
             newReserveToken = newX;
             volume += dy;
+            botTokensGained += tokensReceived;
         } else {
             // Bot Sells (Adds token, removes currency)
             const dx = newReserveToken * tradePct; // Tokens sold
@@ -156,6 +228,7 @@ export const useGameStore = create<GameState>()(
             newReserveToken = newX;
             newReserveCurrency = newY;
             volume += dy;
+            botTokensLost += dx;
         }
 
         // Random Whale Action (1% chance)
@@ -166,9 +239,11 @@ export const useGameStore = create<GameState>()(
                 const dy = newReserveCurrency * whaleTradePct;
                 const newY = newReserveCurrency + dy;
                 const newX = k / newY;
+                const tokensReceived = newReserveToken - newX;
                 newReserveCurrency = newY;
                 newReserveToken = newX;
                 volume += dy;
+                botTokensGained += tokensReceived;
             } else {
                 const dx = newReserveToken * whaleTradePct;
                 const newX = newReserveToken + dx;
@@ -176,7 +251,31 @@ export const useGameStore = create<GameState>()(
                 newReserveToken = newX;
                 newReserveCurrency = newY;
                 volume += (newReserveCurrency - newY); // approx
+                botTokensLost += dx;
             }
+        }
+
+        // Distribute token changes to random bots
+        if (botAddresses.length > 0) {
+            if (botTokensGained > 0) {
+                const buyerAddr = botAddresses[Math.floor(Math.random() * botAddresses.length)];
+                updatedHolders[buyerAddr].balance += botTokensGained;
+            }
+            if (botTokensLost > 0) {
+                // Find a bot that has enough to sell, or just deduct from random
+                const sellers = botAddresses.filter(addr => updatedHolders[addr].balance >= botTokensLost);
+                const sellerAddr = sellers.length > 0
+                    ? sellers[Math.floor(Math.random() * sellers.length)]
+                    : botAddresses[Math.floor(Math.random() * botAddresses.length)];
+
+                // If they don't have enough to sell the full amount, they sell what they have and we assume a new bot steps in for the rest (simplification)
+                updatedHolders[sellerAddr].balance = Math.max(0, updatedHolders[sellerAddr].balance - botTokensLost);
+            }
+        }
+
+        // Update LP Balance
+        if (updatedHolders['liquidity_pool']) {
+            updatedHolders['liquidity_pool'].balance = newReserveToken;
         }
 
         const newPrice = newReserveCurrency / newReserveToken;
@@ -219,7 +318,8 @@ export const useGameStore = create<GameState>()(
                 reserveCurrency: newReserveCurrency,
                 hype: newHype
             },
-            priceHistory: updatedHistory
+            priceHistory: updatedHistory,
+            coinHolders: updatedHolders
         });
       },
 
@@ -228,7 +328,9 @@ export const useGameStore = create<GameState>()(
           playerMoney: INITIAL_MONEY,
           activeCoin: null,
           priceHistory: [],
-          currency: 'USD'
+          currency: 'USD',
+          coinHolders: {},
+          playerWallet: null
         });
       }
     }),
