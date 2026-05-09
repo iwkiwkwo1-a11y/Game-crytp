@@ -5,6 +5,7 @@ import { useGameStore } from '../store/gameStore';
 import { formatMoney } from './AppLayout';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { format } from 'date-fns';
+import SocialFeed from './SocialFeed';
 
 export default function TradingDashboard() {
   const activeCoin = useGameStore((state) => state.activeCoin);
@@ -114,10 +115,10 @@ export default function TradingDashboard() {
   };
 
   return (
-    <div className="flex-1 flex flex-col lg:flex-row gap-1 p-1 bg-black">
+    <div className="flex-1 flex flex-col lg:flex-row gap-1 p-1 bg-black overflow-hidden">
 
       {/* Left Column: Chart & Stats */}
-      <div className="flex-1 flex flex-col gap-1 min-w-0">
+      <div className="flex-1 flex flex-col gap-1 min-w-0 overflow-hidden">
 
         {/* Ticker Banner */}
         <div className="bg-[#181a20] p-4 flex flex-wrap items-center gap-6 border border-gray-800 rounded-sm">
@@ -336,6 +337,10 @@ export default function TradingDashboard() {
           )}
         </div>
       </div>
+
+      {/* Extreme Right Column: Social Feed */}
+      <SocialFeed />
+
     </div>
   );
 }

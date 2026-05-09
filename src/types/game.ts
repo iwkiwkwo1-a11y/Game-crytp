@@ -30,6 +30,15 @@ export interface Coin {
   developerTokens: number; // Token yang dipegang pemain
   ath: number; // All Time High (USD)
   atl: number; // All Time Low (USD)
+  taxRate: number; // Tax percentage (e.g., 5 means 5%)
+  liquidityLocked: boolean; // Cannot rug pull if true
+}
+
+export interface SocialPost {
+  id: string;
+  time: number;
+  content: string;
+  likes: number;
 }
 
 export type Timeframe = '1s' | '10s' | '1m';
@@ -44,19 +53,24 @@ export interface GameState {
   playerMoney: number;
   playerWallet: PlayerWallet | null;
   currency: Currency;
+  followers: number;
 
   // Active Game State
   activeCoin: Coin | null;
   priceHistory: PricePoint[]; // Always stores 1s tick data (up to maybe 500-1000 points max to avoid memory bloat)
   coinHolders: Record<string, Holder>;
   chartTimeframe: Timeframe;
+  socialPosts: SocialPost[];
+  newsAlert: string | null;
 
   // Actions
   setCurrency: (currency: Currency) => void;
   setTimeframe: (tf: Timeframe) => void;
   createWallet: (username: string) => void;
-  deployCoin: (name: string, symbol: string, supply: number, initialLiquidity: number) => void;
-  marketing: (cost: number, hypeBoost: number) => void;
+  deployCoin: (name: string, symbol: string, supply: number, initialLiquidity: number, taxRate: number, locked: boolean) => void;
+  createPost: (content: string) => void;
+  clearNews: () => void;
+
   burnTokens: (amount: number) => void;
   rugPull: () => void;
 

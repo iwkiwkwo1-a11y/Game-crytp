@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { formatMoney } from './AppLayout';
-import { Rocket, AlertTriangle } from 'lucide-react';
+import { Rocket, AlertTriangle, Lock, Percent } from 'lucide-react';
 
 export default function CreateCoinForm() {
   const { playerMoney, currency, deployCoin } = useGameStore();
@@ -12,6 +12,8 @@ export default function CreateCoinForm() {
   const [symbol, setSymbol] = useState('');
   const [supply, setSupply] = useState<number | string>(1000000000); // 1 Billion default
   const [liquidity, setLiquidity] = useState<number | string>('');
+  const [taxRate, setTaxRate] = useState<number>(0);
+  const [locked, setLocked] = useState<boolean>(false);
   const [error, setError] = useState('');
 
   const handleDeploy = (e: React.FormEvent) => {
@@ -38,7 +40,7 @@ export default function CreateCoinForm() {
       return;
     }
 
-    deployCoin(name, symbol.toUpperCase(), parsedSupply, parsedLiquidity);
+    deployCoin(name, symbol.toUpperCase(), parsedSupply, parsedLiquidity, taxRate, locked);
   };
 
   return (
@@ -120,6 +122,37 @@ export default function CreateCoinForm() {
                 className="absolute right-2 top-1/2 -translate-y-1/2 text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 px-2 py-1 rounded transition-colors"
               >
                 MAX
+              </button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-gray-400 mb-1 uppercase tracking-wider flex items-center gap-1">
+                <Percent size={14} /> Buy/Sell Tax
+              </label>
+              <select
+                value={taxRate}
+                onChange={(e) => setTaxRate(Number(e.target.value))}
+                className="w-full bg-[#0b0e11] border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-[#fcd535] transition-colors"
+              >
+                <option value={0}>0% (No Tax)</option>
+                <option value={1}>1%</option>
+                <option value={5}>5%</option>
+                <option value={10}>10% (Degen)</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-gray-400 mb-1 uppercase tracking-wider flex items-center gap-1">
+                <Lock size={14} /> Liquidity
+              </label>
+              <button
+                type="button"
+                onClick={() => setLocked(!locked)}
+                className={`w-full border rounded-lg px-4 py-2.5 text-sm font-medium transition-colors flex items-center justify-center gap-2 ${locked ? 'bg-green-500/20 border-green-500 text-green-400' : 'bg-red-500/10 border-red-500/50 text-red-400'}`}
+              >
+                {locked ? 'Locked (Safe)' : 'Unlocked (Rug)'}
               </button>
             </div>
           </div>

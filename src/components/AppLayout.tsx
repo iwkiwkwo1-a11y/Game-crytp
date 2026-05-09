@@ -38,10 +38,30 @@ export default function AppLayout({ children }: LayoutProps) {
   const activeCoin = useGameStore((state) => state.activeCoin);
   const resetGame = useGameStore((state) => state.resetGame);
 
+  const newsAlert = useGameStore((state) => state.newsAlert);
+  const clearNews = useGameStore((state) => state.clearNews);
+
+  // Auto clear news after 5 seconds
+  React.useEffect(() => {
+    if (newsAlert) {
+      const t = setTimeout(() => {
+        clearNews();
+      }, 5000);
+      return () => clearTimeout(t);
+    }
+  }, [newsAlert, clearNews]);
+
   return (
-    <div className="min-h-screen bg-[#0b0e11] text-gray-200 font-sans flex flex-col">
+    <div className="min-h-screen bg-[#0b0e11] text-gray-200 font-sans flex flex-col relative">
+      {/* News Banner */}
+      {newsAlert && (
+        <div className="absolute top-16 left-0 right-0 z-50 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm font-bold py-2 px-4 flex justify-center items-center shadow-lg animate-in slide-in-from-top-2">
+          🚨 BREAKING NEWS: {newsAlert}
+        </div>
+      )}
+
       {/* Top Navbar */}
-      <nav className="h-16 border-b border-gray-800 bg-[#181a20] flex items-center justify-between px-6 shrink-0">
+      <nav className="h-16 border-b border-gray-800 bg-[#181a20] flex items-center justify-between px-6 shrink-0 relative z-40">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 text-[#fcd535] font-bold text-xl">
             <TrendingUp size={24} />

@@ -2,36 +2,21 @@
 
 import React from 'react';
 import { useGameStore } from '../store/gameStore';
-import { Flame, Megaphone, Skull } from 'lucide-react';
-import { formatMoney } from './AppLayout';
+import { Flame, Skull } from 'lucide-react';
 
 export default function PlayerActions() {
   const activeCoin = useGameStore((state) => state.activeCoin);
-  const playerMoney = useGameStore((state) => state.playerMoney);
-  const currency = useGameStore((state) => state.currency);
-  const marketing = useGameStore((state) => state.marketing);
   const burnTokens = useGameStore((state) => state.burnTokens);
   const rugPull = useGameStore((state) => state.rugPull);
 
   if (!activeCoin || activeCoin.isRugPulled) return null;
-
-  const handleMarketing = () => {
-    // Basic marketing costs $500, adds 20 hype
-    const cost = 500;
-    if (playerMoney >= cost) {
-      marketing(cost, 20);
-    } else {
-      alert("Not enough money for marketing!");
-    }
-  };
 
   const handleBurn = () => {
     // Burns 10% of developer tokens
     const burnAmount = activeCoin.developerTokens * 0.1;
     if (burnAmount > 0) {
       burnTokens(burnAmount);
-      // Small hype boost for burning
-      marketing(0, 5);
+      // Removed old marketing call, burning now relies on organic hype or posting about it on the Social Feed
     }
   };
 
@@ -45,28 +30,19 @@ export default function PlayerActions() {
   };
 
   return (
-    <div className="bg-[#181a20] border-t border-gray-800 p-4 shrink-0 flex items-center justify-between">
+    <div className="bg-[#181a20] border-t border-gray-800 p-4 shrink-0 flex flex-col sm:flex-row items-center justify-between gap-4">
       <div className="flex gap-4">
-        <button
-          onClick={handleMarketing}
-          disabled={playerMoney < 500}
-          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-700 disabled:text-gray-500 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-        >
-          <Megaphone size={18} />
-          <span>Shill (Cost: {formatMoney(500, currency)})</span>
-        </button>
-
         <button
           onClick={handleBurn}
           disabled={activeCoin.developerTokens <= 0}
-          className="flex items-center gap-2 bg-orange-600 hover:bg-orange-700 disabled:bg-gray-700 disabled:text-gray-500 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+          className="flex items-center justify-center gap-2 bg-orange-600 hover:bg-orange-700 disabled:bg-gray-700 disabled:text-gray-500 text-white px-4 py-2 rounded-lg font-medium transition-colors w-full sm:w-auto"
         >
           <Flame size={18} />
           <span>Burn Dev Tokens (10%)</span>
         </button>
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto">
         <div className="text-right text-xs text-gray-400 mr-2">
             <div>Your Dev Tokens:</div>
             <div className="font-mono text-white text-sm">
@@ -75,10 +51,11 @@ export default function PlayerActions() {
         </div>
         <button
           onClick={handleRugPull}
-          className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg font-bold shadow-[0_0_15px_rgba(220,38,38,0.5)] transition-all hover:scale-105"
+          disabled={activeCoin.liquidityLocked}
+          className="flex items-center gap-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-700 disabled:text-gray-500 text-white px-6 py-2 rounded-lg font-bold shadow-[0_0_15px_rgba(220,38,38,0.5)] disabled:shadow-none transition-all hover:scale-105"
+          title={activeCoin.liquidityLocked ? "Cannot rug pull: Liquidity is locked!" : "Sell all dev tokens and destroy the coin"}
         >
-          <Skull size={18} />
-          <span>RUG PULL</span>
+          {activeCoin.liquidityLocked ? <span className="text-sm">LOCKED</span> : <><Skull size={18} /><span>RUG PULL</span></>}
         </button>
       </div>
     </div>
