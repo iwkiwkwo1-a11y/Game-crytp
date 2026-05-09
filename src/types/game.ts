@@ -28,7 +28,11 @@ export interface Coin {
   createdAt: number;
   isRugPulled: boolean;
   developerTokens: number; // Token yang dipegang pemain
+  ath: number; // All Time High (USD)
+  atl: number; // All Time Low (USD)
 }
+
+export type Timeframe = '1s' | '10s' | '1m';
 
 export interface PlayerWallet {
   address: string;
@@ -43,11 +47,13 @@ export interface GameState {
 
   // Active Game State
   activeCoin: Coin | null;
-  priceHistory: PricePoint[];
+  priceHistory: PricePoint[]; // Always stores 1s tick data (up to maybe 500-1000 points max to avoid memory bloat)
   coinHolders: Record<string, Holder>;
+  chartTimeframe: Timeframe;
 
   // Actions
   setCurrency: (currency: Currency) => void;
+  setTimeframe: (tf: Timeframe) => void;
   createWallet: (username: string) => void;
   deployCoin: (name: string, symbol: string, supply: number, initialLiquidity: number) => void;
   marketing: (cost: number, hypeBoost: number) => void;

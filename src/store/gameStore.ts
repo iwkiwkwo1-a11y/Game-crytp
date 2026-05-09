@@ -22,8 +22,11 @@ export const useGameStore = create<GameState>()(
       activeCoin: null,
       priceHistory: [],
       coinHolders: {},
+      chartTimeframe: '1s',
 
       setCurrency: (currency) => set({ currency }),
+
+      setTimeframe: (chartTimeframe) => set({ chartTimeframe }),
 
       createWallet: (username: string) => {
         set({
@@ -43,6 +46,8 @@ export const useGameStore = create<GameState>()(
         const devTokens = supply * 0.1;
         const poolTokens = supply * 0.9;
 
+        const initialPrice = initialLiquidity / poolTokens;
+
         const newCoin: Coin = {
           id: Date.now().toString(),
           name,
@@ -55,9 +60,9 @@ export const useGameStore = create<GameState>()(
           createdAt: Date.now(),
           isRugPulled: false,
           developerTokens: devTokens,
+          ath: initialPrice,
+          atl: initialPrice,
         };
-
-        const initialPrice = initialLiquidity / poolTokens;
         const initialPricePoint: PricePoint = {
           time: Date.now(),
           open: initialPrice,
@@ -280,35 +285,27 @@ export const useGameStore = create<GameState>()(
 
         const newPrice = newReserveCurrency / newReserveToken;
 
-        // Update Price History
-        const lastPoint = priceHistory[priceHistory.length - 1];
-        const pointDuration = 5000; // 5 seconds per candle
+        // Update ATH / ATL
+        const newAth = Math.max(activeCoin.ath, newPrice);
+        const newAtl = Math.min(activeCoin.atl, newPrice);
 
+        // Update Price History (Always record 1s tick data)
+        const lastPoint = priceHistory[priceHistory.length - 1];
         let updatedHistory = [...priceHistory];
 
-        if (now - lastPoint.time >= pointDuration) {
-            // Create new candle
-            updatedHistory.push({
-                time: now,
-                open: newPrice,
-                high: newPrice,
-                low: newPrice,
-                close: newPrice,
-                volume: volume
-            });
-        } else {
-            // Update current candle
-            const updatedPoint = { ...lastPoint };
-            updatedPoint.high = Math.max(updatedPoint.high, newPrice);
-            updatedPoint.low = Math.min(updatedPoint.low, newPrice);
-            updatedPoint.close = newPrice;
-            updatedPoint.volume += volume;
-            updatedHistory[updatedHistory.length - 1] = updatedPoint;
-        }
+        // Push a new point every update (which is ~1s)
+        updatedHistory.push({
+            time: now,
+            open: lastPoint.close,
+            high: Math.max(lastPoint.close, newPrice),
+            low: Math.min(lastPoint.close, newPrice),
+            close: newPrice,
+            volume: volume
+        });
 
-        // Keep only last 100 points
-        if (updatedHistory.length > 100) {
-            updatedHistory = updatedHistory.slice(-100);
+        // Keep up to 600 points (10 minutes of 1s ticks) to allow for 1m aggregation views
+        if (updatedHistory.length > 600) {
+            updatedHistory = updatedHistory.slice(-600);
         }
 
         set({
@@ -316,7 +313,9 @@ export const useGameStore = create<GameState>()(
                 ...activeCoin,
                 reserveToken: newReserveToken,
                 reserveCurrency: newReserveCurrency,
-                hype: newHype
+                hype: newHype,
+                ath: newAth,
+                atl: newAtl
             },
             priceHistory: updatedHistory,
             coinHolders: updatedHolders
