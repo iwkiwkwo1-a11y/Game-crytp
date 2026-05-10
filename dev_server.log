@@ -1,0 +1,670 @@
+
+> temp-app@0.1.0 dev
+> next dev
+
+▲ Next.js 16.2.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.0.2:3000
+✓ Ready in 562ms
+
+○ Compiling / ...
+ GET / 200 in 9.0s (next.js: 8.1s, application-code: 852ms)
+[browser] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+[browser] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+✓ Compiled in 495ms
+ GET / 200 in 1260ms (next.js: 819ms, application-code: 442ms)
+[browser] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+[browser] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+[Server HMR] Update failed, full reload needed: SyntaxError: Identifier 'newPrice' has already been declared
+    at eval (<anonymous>)
+[Server HMR] Listener error: SyntaxError: Identifier 'newPrice' has already been declared
+    at eval (<anonymous>)
+ GET / 200 in 1533ms (next.js: 529ms, application-code: 1003ms)
+[browser] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+[browser] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+ GET / 200 in 1505ms (next.js: 782ms, application-code: 723ms)
+ GET / 200 in 80ms (next.js: 7ms, application-code: 73ms)
+[browser] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+[browser] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+ GET / 200 in 95ms (next.js: 9ms, application-code: 86ms)
+[browser] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+[browser] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+⨯ ./src/app/page.tsx:12:8
+the name `React` is defined multiple times
+  [90m10 |[0m [36mimport[0m { useGameStore } [36mfrom[0m [32m'@/store/gameStore'[0m;
+  [90m11 |[0m [36mimport[0m { useGameLoop } [36mfrom[0m [32m'@/hooks/useGameLoop'[0m;
+[31m[1m>[0m [90m12 |[0m [36mimport[0m [33mReact[0m, { useState } [36mfrom[0m [32m'react'[0m;
+  [90m   |[0m        [31m[1m^^^^^[0m
+  [90m13 |[0m
+  [90m14 |[0m [36mexport[0m [36mdefault[0m [36mfunction[0m [33mHome[0m() {
+  [90m15 |[0m   [36mconst[0m playerWallet = useGameStore((state) => state.playerWallet);
+
+Ecmascript file had an error
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+
+
+○ Compiling /_error ...
+ GET / 500 in 5.9s (next.js: 4.6s, application-code: 1302ms)
+[browser] Uncaught Error: ./src/app/page.tsx:12:8
+the name `React` is defined multiple times
+  10 | import { useGameStore } from '@/store/gameStore';
+  11 | import { useGameLoop } from '@/hooks/useGameLoop';
+> 12 | import React, { useState } from 'react';
+     |        ^^^^^
+  13 |
+  14 | export default function Home() {
+  15 |   const playerWallet = useGameStore((state) => state.playerWallet);
+
+Ecmascript file had an error
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+
+
+    at <unknown> (Error: ./src/app/page.tsx:12:8)
+    at <unknown> (Error: (./src/app/page.tsx:12:8)
+[browser] ./src/app/page.tsx:12:8
+the name `React` is defined multiple times
+  10 | import { useGameStore } from '@/store/gameStore';
+  11 | import { useGameLoop } from '@/hooks/useGameLoop';
+> 12 | import React, { useState } from 'react';
+     |        ^^^^^
+  13 |
+  14 | export default function Home() {
+  15 |   const playerWallet = useGameStore((state) => state.playerWallet);
+
+Ecmascript file had an error
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+[browser] ./src/app/page.tsx:12:8
+the name `React` is defined multiple times
+  10 | import { useGameStore } from '@/store/gameStore';
+  11 | import { useGameLoop } from '@/hooks/useGameLoop';
+> 12 | import React, { useState } from 'react';
+     |        ^^^^^
+  13 |
+  14 | export default function Home() {
+  15 |   const playerWallet = useGameStore((state) => state.playerWallet);
+
+Ecmascript file had an error
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+[browser] ./src/app/page.tsx:12:8
+the name `React` is defined multiple times
+  10 | import { useGameStore } from '@/store/gameStore';
+  11 | import { useGameLoop } from '@/hooks/useGameLoop';
+> 12 | import React, { useState } from 'react';
+     |        ^^^^^
+  13 |
+  14 | export default function Home() {
+  15 |   const playerWallet = useGameStore((state) => state.playerWallet);
+
+Ecmascript file had an error
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+[browser] ./src/app/page.tsx:12:8
+the name `React` is defined multiple times
+  10 | import { useGameStore } from '@/store/gameStore';
+  11 | import { useGameLoop } from '@/hooks/useGameLoop';
+> 12 | import React, { useState } from 'react';
+     |        ^^^^^
+  13 |
+  14 | export default function Home() {
+  15 |   const playerWallet = useGameStore((state) => state.playerWallet);
+
+Ecmascript file had an error
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+✓ Compiled in 77ms
+ GET / 200 in 2.3s (next.js: 1434ms, application-code: 851ms)
+[browser] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+[browser] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+ GET / 200 in 83ms (next.js: 11ms, application-code: 72ms)
+[browser] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+[browser] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+ GET / 200 in 83ms (next.js: 6ms, application-code: 77ms)
+ GET / 200 in 71ms (next.js: 5ms, application-code: 67ms)
+[browser] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+[browser] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+ GET / 200 in 1005ms (next.js: 492ms, application-code: 513ms)
+[browser] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+[browser] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+ GET / 200 in 67ms (next.js: 5ms, application-code: 61ms)
+[browser] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+[browser] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+[browser] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+[browser] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+[browser] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+[browser] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+ GET / 200 in 1176ms (next.js: 128ms, application-code: 1049ms)
+[browser] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+[browser] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+ GET / 200 in 132ms (next.js: 7ms, application-code: 124ms)
+[browser] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+[browser] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+ GET / 200 in 63ms (next.js: 6ms, application-code: 57ms)
+[browser] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+[browser] The width(-1) and height(-1) of chart should be greater than 0,
+       please check the style of container, or the props width(100%) and height(100%),
+       or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+       height and width.
+⨯ ./src/components/TradingDashboard.tsx:6:1
+Module not found: Can't resolve 'recharts'
+  [90m4 |[0m [36mimport[0m { useGameStore } [36mfrom[0m [32m'../store/gameStore'[0m;
+  [90m5 |[0m [36mimport[0m { formatMoney } [36mfrom[0m [32m'./AppLayout'[0m;
+[31m[1m>[0m [90m6 |[0m [36mimport[0m { [33mAreaChart[0m, [33mArea[0m, [33mXAxis[0m, [33mYAxis[0m, [33mTooltip[0m, [33mResponsiveContainer[0m } [36mfrom[0m [32m'recharts'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m7 |[0m [36mimport[0m { format } [36mfrom[0m [32m'date-fns'[0m;
+  [90m8 |[0m [36mimport[0m [33mSocialFeed[0m [36mfrom[0m [32m'./SocialFeed'[0m;
+  [90m9 |[0m [36mimport[0m [33mSwapPanel[0m [36mfrom[0m [32m'./SwapPanel'[0m;
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/TradingDashboard.tsx [Client Component Browser]
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/TradingDashboard.tsx [Client Component SSR]
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/TradingDashboard.tsx:6:1
+Module not found: Can't resolve 'recharts'
+  [90m4 |[0m [36mimport[0m { useGameStore } [36mfrom[0m [32m'../store/gameStore'[0m;
+  [90m5 |[0m [36mimport[0m { formatMoney } [36mfrom[0m [32m'./AppLayout'[0m;
+[31m[1m>[0m [90m6 |[0m [36mimport[0m { [33mAreaChart[0m, [33mArea[0m, [33mXAxis[0m, [33mYAxis[0m, [33mTooltip[0m, [33mResponsiveContainer[0m } [36mfrom[0m [32m'recharts'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m7 |[0m [36mimport[0m { format } [36mfrom[0m [32m'date-fns'[0m;
+  [90m8 |[0m [36mimport[0m [33mSocialFeed[0m [36mfrom[0m [32m'./SocialFeed'[0m;
+  [90m9 |[0m [36mimport[0m [33mSwapPanel[0m [36mfrom[0m [32m'./SwapPanel'[0m;
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/TradingDashboard.tsx [Client Component Browser]
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/TradingDashboard.tsx [Client Component SSR]
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/TradingDashboard.tsx:6:1
+Module not found: Can't resolve 'recharts'
+  [90m4 |[0m [36mimport[0m { useGameStore } [36mfrom[0m [32m'../store/gameStore'[0m;
+  [90m5 |[0m [36mimport[0m { formatMoney } [36mfrom[0m [32m'./AppLayout'[0m;
+[31m[1m>[0m [90m6 |[0m [36mimport[0m { [33mAreaChart[0m, [33mArea[0m, [33mXAxis[0m, [33mYAxis[0m, [33mTooltip[0m, [33mResponsiveContainer[0m } [36mfrom[0m [32m'recharts'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m7 |[0m [36mimport[0m { format } [36mfrom[0m [32m'date-fns'[0m;
+  [90m8 |[0m [36mimport[0m [33mSocialFeed[0m [36mfrom[0m [32m'./SocialFeed'[0m;
+  [90m9 |[0m [36mimport[0m [33mSwapPanel[0m [36mfrom[0m [32m'./SwapPanel'[0m;
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/TradingDashboard.tsx [Client Component Browser]
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/TradingDashboard.tsx [Client Component SSR]
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/TradingDashboard.tsx:6:1
+Module not found: Can't resolve 'recharts'
+  [90m4 |[0m [36mimport[0m { useGameStore } [36mfrom[0m [32m'../store/gameStore'[0m;
+  [90m5 |[0m [36mimport[0m { formatMoney } [36mfrom[0m [32m'./AppLayout'[0m;
+[31m[1m>[0m [90m6 |[0m [36mimport[0m { [33mAreaChart[0m, [33mArea[0m, [33mXAxis[0m, [33mYAxis[0m, [33mTooltip[0m, [33mResponsiveContainer[0m } [36mfrom[0m [32m'recharts'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m7 |[0m [36mimport[0m { format } [36mfrom[0m [32m'date-fns'[0m;
+  [90m8 |[0m [36mimport[0m [33mSocialFeed[0m [36mfrom[0m [32m'./SocialFeed'[0m;
+  [90m9 |[0m [36mimport[0m [33mSwapPanel[0m [36mfrom[0m [32m'./SwapPanel'[0m;
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/TradingDashboard.tsx [Client Component Browser]
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/TradingDashboard.tsx [Client Component SSR]
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/TradingDashboard.tsx:6:1
+Module not found: Can't resolve 'recharts'
+  [90m4 |[0m [36mimport[0m { useGameStore } [36mfrom[0m [32m'../store/gameStore'[0m;
+  [90m5 |[0m [36mimport[0m { formatMoney } [36mfrom[0m [32m'./AppLayout'[0m;
+[31m[1m>[0m [90m6 |[0m [36mimport[0m { [33mAreaChart[0m, [33mArea[0m, [33mXAxis[0m, [33mYAxis[0m, [33mTooltip[0m, [33mResponsiveContainer[0m } [36mfrom[0m [32m'recharts'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m7 |[0m [36mimport[0m { format } [36mfrom[0m [32m'date-fns'[0m;
+  [90m8 |[0m [36mimport[0m [33mSocialFeed[0m [36mfrom[0m [32m'./SocialFeed'[0m;
+  [90m9 |[0m [36mimport[0m [33mSwapPanel[0m [36mfrom[0m [32m'./SwapPanel'[0m;
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/TradingDashboard.tsx [Client Component Browser]
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/TradingDashboard.tsx [Client Component SSR]
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/TradingDashboard.tsx:6:1
+Module not found: Can't resolve 'recharts'
+  [90m4 |[0m [36mimport[0m { useGameStore } [36mfrom[0m [32m'../store/gameStore'[0m;
+  [90m5 |[0m [36mimport[0m { formatMoney } [36mfrom[0m [32m'./AppLayout'[0m;
+[31m[1m>[0m [90m6 |[0m [36mimport[0m { [33mAreaChart[0m, [33mArea[0m, [33mXAxis[0m, [33mYAxis[0m, [33mTooltip[0m, [33mResponsiveContainer[0m } [36mfrom[0m [32m'recharts'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m7 |[0m [36mimport[0m { format } [36mfrom[0m [32m'date-fns'[0m;
+  [90m8 |[0m [36mimport[0m [33mSocialFeed[0m [36mfrom[0m [32m'./SocialFeed'[0m;
+  [90m9 |[0m [36mimport[0m [33mSwapPanel[0m [36mfrom[0m [32m'./SwapPanel'[0m;
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/TradingDashboard.tsx [Client Component Browser]
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/TradingDashboard.tsx [Client Component SSR]
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/TradingDashboard.tsx:6:1
+Module not found: Can't resolve 'recharts'
+  [90m4 |[0m [36mimport[0m { useGameStore } [36mfrom[0m [32m'../store/gameStore'[0m;
+  [90m5 |[0m [36mimport[0m { formatMoney } [36mfrom[0m [32m'./AppLayout'[0m;
+[31m[1m>[0m [90m6 |[0m [36mimport[0m { [33mAreaChart[0m, [33mArea[0m, [33mXAxis[0m, [33mYAxis[0m, [33mTooltip[0m, [33mResponsiveContainer[0m } [36mfrom[0m [32m'recharts'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m7 |[0m [36mimport[0m { format } [36mfrom[0m [32m'date-fns'[0m;
+  [90m8 |[0m [36mimport[0m [33mSocialFeed[0m [36mfrom[0m [32m'./SocialFeed'[0m;
+  [90m9 |[0m [36mimport[0m [33mSwapPanel[0m [36mfrom[0m [32m'./SwapPanel'[0m;
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/TradingDashboard.tsx [Client Component Browser]
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/TradingDashboard.tsx [Client Component SSR]
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/TradingDashboard.tsx:6:1
+Module not found: Can't resolve 'recharts'
+  [90m4 |[0m [36mimport[0m { useGameStore } [36mfrom[0m [32m'../store/gameStore'[0m;
+  [90m5 |[0m [36mimport[0m { formatMoney } [36mfrom[0m [32m'./AppLayout'[0m;
+[31m[1m>[0m [90m6 |[0m [36mimport[0m { [33mAreaChart[0m, [33mArea[0m, [33mXAxis[0m, [33mYAxis[0m, [33mTooltip[0m, [33mResponsiveContainer[0m } [36mfrom[0m [32m'recharts'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m7 |[0m [36mimport[0m { format } [36mfrom[0m [32m'date-fns'[0m;
+  [90m8 |[0m [36mimport[0m [33mSocialFeed[0m [36mfrom[0m [32m'./SocialFeed'[0m;
+  [90m9 |[0m [36mimport[0m [33mSwapPanel[0m [36mfrom[0m [32m'./SwapPanel'[0m;
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/TradingDashboard.tsx [Client Component Browser]
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/TradingDashboard.tsx [Client Component SSR]
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/TradingDashboard.tsx:6:1
+Module not found: Can't resolve 'recharts'
+  [90m4 |[0m [36mimport[0m { useGameStore } [36mfrom[0m [32m'../store/gameStore'[0m;
+  [90m5 |[0m [36mimport[0m { formatMoney } [36mfrom[0m [32m'./AppLayout'[0m;
+[31m[1m>[0m [90m6 |[0m [36mimport[0m { [33mAreaChart[0m, [33mArea[0m, [33mXAxis[0m, [33mYAxis[0m, [33mTooltip[0m, [33mResponsiveContainer[0m } [36mfrom[0m [32m'recharts'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m7 |[0m [36mimport[0m { format } [36mfrom[0m [32m'date-fns'[0m;
+  [90m8 |[0m [36mimport[0m [33mSocialFeed[0m [36mfrom[0m [32m'./SocialFeed'[0m;
+  [90m9 |[0m [36mimport[0m [33mSwapPanel[0m [36mfrom[0m [32m'./SwapPanel'[0m;
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/TradingDashboard.tsx [Client Component Browser]
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/TradingDashboard.tsx [Client Component SSR]
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/TradingDashboard.tsx:6:1
+Module not found: Can't resolve 'recharts'
+  [90m4 |[0m [36mimport[0m { useGameStore } [36mfrom[0m [32m'../store/gameStore'[0m;
+  [90m5 |[0m [36mimport[0m { formatMoney } [36mfrom[0m [32m'./AppLayout'[0m;
+[31m[1m>[0m [90m6 |[0m [36mimport[0m { [33mAreaChart[0m, [33mArea[0m, [33mXAxis[0m, [33mYAxis[0m, [33mTooltip[0m, [33mResponsiveContainer[0m } [36mfrom[0m [32m'recharts'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m7 |[0m [36mimport[0m { format } [36mfrom[0m [32m'date-fns'[0m;
+  [90m8 |[0m [36mimport[0m [33mSocialFeed[0m [36mfrom[0m [32m'./SocialFeed'[0m;
+  [90m9 |[0m [36mimport[0m [33mSwapPanel[0m [36mfrom[0m [32m'./SwapPanel'[0m;
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/TradingDashboard.tsx [Client Component Browser]
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/TradingDashboard.tsx [Client Component SSR]
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/TradingDashboard.tsx:6:1
+Module not found: Can't resolve 'recharts'
+  [90m4 |[0m [36mimport[0m { useGameStore } [36mfrom[0m [32m'../store/gameStore'[0m;
+  [90m5 |[0m [36mimport[0m { formatMoney } [36mfrom[0m [32m'./AppLayout'[0m;
+[31m[1m>[0m [90m6 |[0m [36mimport[0m { [33mAreaChart[0m, [33mArea[0m, [33mXAxis[0m, [33mYAxis[0m, [33mTooltip[0m, [33mResponsiveContainer[0m } [36mfrom[0m [32m'recharts'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m7 |[0m [36mimport[0m { format } [36mfrom[0m [32m'date-fns'[0m;
+  [90m8 |[0m [36mimport[0m [33mSocialFeed[0m [36mfrom[0m [32m'./SocialFeed'[0m;
+  [90m9 |[0m [36mimport[0m [33mSwapPanel[0m [36mfrom[0m [32m'./SwapPanel'[0m;
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/TradingDashboard.tsx [Client Component Browser]
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/TradingDashboard.tsx [Client Component SSR]
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/TradingDashboard.tsx:6:1
+Module not found: Can't resolve 'recharts'
+  [90m4 |[0m [36mimport[0m { useGameStore } [36mfrom[0m [32m'../store/gameStore'[0m;
+  [90m5 |[0m [36mimport[0m { formatMoney } [36mfrom[0m [32m'./AppLayout'[0m;
+[31m[1m>[0m [90m6 |[0m [36mimport[0m { [33mAreaChart[0m, [33mArea[0m, [33mXAxis[0m, [33mYAxis[0m, [33mTooltip[0m, [33mResponsiveContainer[0m } [36mfrom[0m [32m'recharts'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m7 |[0m [36mimport[0m { format } [36mfrom[0m [32m'date-fns'[0m;
+  [90m8 |[0m [36mimport[0m [33mSocialFeed[0m [36mfrom[0m [32m'./SocialFeed'[0m;
+  [90m9 |[0m [36mimport[0m [33mSwapPanel[0m [36mfrom[0m [32m'./SwapPanel'[0m;
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/TradingDashboard.tsx [Client Component Browser]
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/TradingDashboard.tsx [Client Component SSR]
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/TradingDashboard.tsx:6:1
+Module not found: Can't resolve 'recharts'
+  [90m4 |[0m [36mimport[0m { useGameStore } [36mfrom[0m [32m'../store/gameStore'[0m;
+  [90m5 |[0m [36mimport[0m { formatMoney } [36mfrom[0m [32m'./AppLayout'[0m;
+[31m[1m>[0m [90m6 |[0m [36mimport[0m { [33mAreaChart[0m, [33mArea[0m, [33mXAxis[0m, [33mYAxis[0m, [33mTooltip[0m, [33mResponsiveContainer[0m } [36mfrom[0m [32m'recharts'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m7 |[0m [36mimport[0m { format } [36mfrom[0m [32m'date-fns'[0m;
+  [90m8 |[0m [36mimport[0m [33mSocialFeed[0m [36mfrom[0m [32m'./SocialFeed'[0m;
+  [90m9 |[0m [36mimport[0m [33mSwapPanel[0m [36mfrom[0m [32m'./SwapPanel'[0m;
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/TradingDashboard.tsx [Client Component Browser]
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/TradingDashboard.tsx [Client Component SSR]
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+⨯ ./src/components/TradingDashboard.tsx:6:1
+Module not found: Can't resolve 'recharts'
+  [90m4 |[0m [36mimport[0m { useGameStore } [36mfrom[0m [32m'../store/gameStore'[0m;
+  [90m5 |[0m [36mimport[0m { formatMoney } [36mfrom[0m [32m'./AppLayout'[0m;
+[31m[1m>[0m [90m6 |[0m [36mimport[0m { [33mAreaChart[0m, [33mArea[0m, [33mXAxis[0m, [33mYAxis[0m, [33mTooltip[0m, [33mResponsiveContainer[0m } [36mfrom[0m [32m'recharts'[0m;
+  [90m  |[0m [31m[1m^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^[0m
+  [90m7 |[0m [36mimport[0m { format } [36mfrom[0m [32m'date-fns'[0m;
+  [90m8 |[0m [36mimport[0m [33mSocialFeed[0m [36mfrom[0m [32m'./SocialFeed'[0m;
+  [90m9 |[0m [36mimport[0m [33mSwapPanel[0m [36mfrom[0m [32m'./SwapPanel'[0m;
+
+
+
+Import traces:
+  Client Component Browser:
+    ./src/components/TradingDashboard.tsx [Client Component Browser]
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/components/TradingDashboard.tsx [Client Component SSR]
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+✓ Compiled in 129ms
+ GET / 200 in 1017ms (next.js: 512ms, application-code: 505ms)
+[browser] Uncaught TypeError: chart.addAreaSeries is not a function
+    at TradingViewChart.useEffect (src/components/TradingViewChart.tsx:53:30)
+    at TradingDashboard (src/components/TradingDashboard.tsx:193:17)
+    at Home (src/app/page.tsx:44:11)
+  51 |         });
+  52 |
+> 53 |         const series = chart.addAreaSeries({
+     |                              ^
+  54 |             topColor: 'rgba(14, 204, 131, 0.4)',
+  55 |             bottomColor: 'rgba(14, 204, 131, 0)',
+  56 |             lineColor: '#0ecc83',
+ GET / 200 in 72ms (next.js: 4ms, application-code: 67ms)
+[browser] Uncaught TypeError: chart.addAreaSeries is not a function
+    at TradingViewChart.useEffect (src/components/TradingViewChart.tsx:53:30)
+    at TradingDashboard (src/components/TradingDashboard.tsx:193:17)
+    at Home (src/app/page.tsx:44:11)
+  51 |         });
+  52 |
+> 53 |         const series = chart.addAreaSeries({
+     |                              ^
+  54 |             topColor: 'rgba(14, 204, 131, 0.4)',
+  55 |             bottomColor: 'rgba(14, 204, 131, 0)',
+  56 |             lineColor: '#0ecc83',
+ GET / 200 in 78ms (next.js: 11ms, application-code: 67ms)
+ GET / 200 in 1531ms (next.js: 117ms, application-code: 1414ms)
