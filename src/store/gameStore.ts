@@ -461,7 +461,7 @@ export const useGameStore = create<GameState>()(
                 taxRate: Math.floor(Math.random() * 10), // Random tax 0-9%
                 liquidityLocked: Math.random() > 0.5,
                 antiSniper: false,
-                isListedCMC: false,
+                listingLevel: 0,
                 ownerAddress: botAddr
             };
 
@@ -602,18 +602,110 @@ export const useGameStore = create<GameState>()(
             // Anti-sniper tax (99%) if within 10s of creation
             const isAntiSniperActive = coin.antiSniper && (now - coin.createdAt < 10000);
 
-            // Player Upgrade: Smooth Talker reduces perceived tax rate so bots buy more often despite tax
-            // Doesn't apply to anti-sniper. It effectively reduces the true tax collected slightly,
-            // OR we can just say it reduces the negative psychological impact on buyProbability.
-            // Let's just use it to artificially lower the tax rate applied to bot buys.
+            // Player Upgrade: Smooth Talker reduces perceived tax rate
             let currentTaxRate = coin.taxRate;
             if (!isAntiSniperActive && coin.ownerAddress === playerWallet?.address && upgrades.smoothTalker > 0 && currentTaxRate > 0) {
-                 // For example, 10% tax. Smooth talker lv 5 makes bots only pay 5% tax.
-                 // (Less tax for player, but bots get more tokens -> less selling pressure later)
                  currentTaxRate = Math.max(0, currentTaxRate - upgrades.smoothTalker);
             }
             if (isAntiSniperActive) currentTaxRate = 99;
 
+            // --- ADVANCED BOTS INTERVENTION (Positive for Devs) ---
+            const isMyCoin = coin.ownerAddress === playerWallet?.address;
+
+            // 1. DCA Bot (Constant small buys creating a floor price)
+            // Happens 30% of the time, tiny amounts
+            if (isMyCoin && Math.random() < 0.3) {
+                let dy = newReserveCurrency * (Math.random() * 0.005 + 0.001); // 0.1% to 0.5% buy
+                if (currentTaxRate > 0) {
+                    const taxValue = dy * (currentTaxRate / 100);
+                    taxCollected += taxValue;
+                    dy -= taxValue;
+                }
+                const newY = newReserveCurrency + dy;
+                const newX = k / newY;
+                newReserveCurrency = newY;
+                newReserveToken = newX;
+                volume += dy;
+                botTokensGained += (k/newReserveCurrency - newX); // Approximate tokens
+            }
+
+            // 2. FOMO Apes (Massive buys when hype is > 80)
+            // 5% chance per tick when hype is huge
+            if (isMyCoin && newHype > 80 && Math.random() < 0.05) {
+                let dy = newReserveCurrency * (Math.random() * 0.1 + 0.05); // 5% to 15% buy
+                if (currentTaxRate > 0) {
+                    const taxValue = dy * (currentTaxRate / 100);
+                    taxCollected += taxValue;
+                    dy -= taxValue;
+                }
+                const newY = newReserveCurrency + dy;
+                const newX = k / newY;
+                newReserveCurrency = newY;
+                newReserveToken = newX;
+                volume += dy;
+                botTokensGained += (k/newReserveCurrency - newX);
+
+                const { toasts } = get();
+                set({ toasts: [...toasts, {
+                    id: Date.now().toString() + Math.random(),
+                    title: '🦍 FOMO Apes Arrived!',
+                    message: `The hype is real! Apes just bought $${dy.toFixed(0)} of ${coin.symbol}!`,
+                    type: 'success' as const,
+                    timestamp: Date.now()
+                }].slice(-5) });
+            }
+
+            // 3. White Knight Whale (Rescues coin when hype < 20)
+            // 2% chance when dying
+            if (isMyCoin && newHype < 20 && Math.random() < 0.02) {
+                let dy = newReserveCurrency * (Math.random() * 0.15 + 0.1); // 10% to 25% buy
+                if (currentTaxRate > 0) {
+                    const taxValue = dy * (currentTaxRate / 100);
+                    taxCollected += taxValue;
+                    dy -= taxValue;
+                }
+                const newY = newReserveCurrency + dy;
+                const newX = k / newY;
+                newReserveCurrency = newY;
+                newReserveToken = newX;
+                volume += dy;
+                botTokensGained += (k/newReserveCurrency - newX);
+
+                // Boost hype back up to save the coin
+                newHype = Math.min(100, newHype + 40);
+
+                const { toasts } = get();
+                set({ toasts: [...toasts, {
+                    id: Date.now().toString() + Math.random(),
+                    title: '🛡️ White Knight Whale!',
+                    message: `A whale saved ${coin.symbol} from dying with a $${dy.toFixed(0)} buy!`,
+                    type: 'info' as const,
+                    timestamp: Date.now()
+                }].slice(-5) });
+            }
+
+            // 4. MEV / Arbitrage Bot (Tax Farmer)
+            // 5% chance. Does a wash trade (buy then immediate sell) just to farm volume.
+            // If tax > 0, this generates pure passive USD for the dev without dumping the price.
+            if (isMyCoin && currentTaxRate > 0 && Math.random() < 0.05) {
+                const mevVolume = newReserveCurrency * (Math.random() * 0.1 + 0.02); // 2% to 12% volume
+                const taxValue = mevVolume * (currentTaxRate / 100);
+                taxCollected += taxValue * 2; // Buys AND sells -> Double tax
+                volume += mevVolume * 2;
+
+                // We don't change reserveToken/reserveCurrency much because it's a wash trade (net zero price movement)
+                // But the dev gets the tax!
+                const { toasts } = get();
+                set({ toasts: [...toasts, {
+                    id: Date.now().toString() + Math.random(),
+                    title: '🤖 MEV Bot Wash Trade',
+                    message: `MEV Bot generated $${(taxValue * 2).toFixed(2)} in taxes for you!`,
+                    type: 'warning' as const,
+                    timestamp: Date.now()
+                }].slice(-5) });
+            }
+
+            // --- STANDARD BOT LOGIC ---
             if (isBuy) {
                 let dy = newReserveCurrency * tradePct;
                 if (currentTaxRate > 0) {
@@ -645,6 +737,7 @@ export const useGameStore = create<GameState>()(
                 botTokensLost += dx;
             }
 
+            // Standard Random Whale Action
             if (Math.random() < 0.02) {
                 const whaleAction = Math.random() < buyProbability ? 'buy' : 'sell';
                 const whaleTradePct = Math.random() * 0.2 + 0.05;

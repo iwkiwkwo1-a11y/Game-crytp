@@ -91,7 +91,7 @@ export default function MarketTrending() {
                                             <div className="flex flex-col">
                                                 <span className="font-bold text-white flex items-center gap-2">
                                                     {coin.name}
-                                                    {coin.isListedCMC && <span className="bg-blue-500 text-white text-[10px] px-1.5 py-0.5 rounded-sm ml-1">CMC</span>}
+                                                    {coin.listingLevel > 0 && <span className="bg-blue-500 text-white text-[10px] px-1.5 py-0.5 rounded-sm ml-1">Tier {4 - coin.listingLevel}</span>}
                                                     {isMine && <span className="bg-[#fcd535] text-black text-[10px] px-1.5 py-0.5 rounded-sm ml-1">YOU</span>}
                                                 </span>
                                                 <span className="text-xs text-gray-500">{coin.symbol}</span>

@@ -13,20 +13,19 @@ export default function TradingDashboard() {
   const coins = useGameStore((state) => state.coins);
   const activeCoin = activeCoinId ? coins[activeCoinId] : null;
   const priceHistoryMap = useGameStore((state) => state.priceHistory);
-  const priceHistory = activeCoinId && priceHistoryMap[activeCoinId] ? priceHistoryMap[activeCoinId] : [];
   const currency = useGameStore((state) => state.currency);
   const coinHoldersMap = useGameStore((state) => state.coinHolders);
-  const coinHolders = activeCoinId && coinHoldersMap[activeCoinId] ? coinHoldersMap[activeCoinId] : {};
   const chartTimeframe = useGameStore((state) => state.chartTimeframe);
   const setTimeframe = useGameStore((state) => state.setTimeframe);
   const [activeTab, setActiveTab] = useState<'orderbook' | 'holders'>('orderbook');
 
   const topHolders = useMemo(() => {
-    return Object.values(coinHolders)
+    const holders = activeCoinId && coinHoldersMap[activeCoinId] ? coinHoldersMap[activeCoinId] : {};
+    return Object.values(holders)
       .filter(h => h.balance > 0)
       .sort((a, b) => b.balance - a.balance)
       .slice(0, 10);
-  }, [coinHolders]);
+  }, [coinHoldersMap, activeCoinId]);
 
   const currentPrice = useMemo(() => {
     if (!activeCoin) return 0;
@@ -40,17 +39,18 @@ export default function TradingDashboard() {
 
   // Aggregate price history based on selected timeframe
   const chartData = useMemo(() => {
-    if (priceHistory.length === 0) return [];
+    const history = activeCoinId && priceHistoryMap[activeCoinId] ? priceHistoryMap[activeCoinId] : [];
+    if (history.length === 0) return [];
 
     const aggregated = [];
     const intervalMs = chartTimeframe === '1s' ? 1000 : chartTimeframe === '10s' ? 10000 : 60000;
 
     // Group by interval
-    let currentCandle = { ...priceHistory[0] };
+    let currentCandle = { ...history[0] };
     let currentIntervalStart = Math.floor(currentCandle.time / intervalMs) * intervalMs;
 
-    for (let i = 1; i < priceHistory.length; i++) {
-        const point = priceHistory[i];
+    for (let i = 1; i < history.length; i++) {
+        const point = history[i];
         const pointIntervalStart = Math.floor(point.time / intervalMs) * intervalMs;
 
         if (pointIntervalStart === currentIntervalStart) {
@@ -81,7 +81,7 @@ export default function TradingDashboard() {
     // Limit to display 100 candles on UI so it's not too squished
     return aggregated.slice(-100);
 
-  }, [priceHistory, currency, chartTimeframe]);
+  }, [priceHistoryMap, activeCoinId, currency, chartTimeframe]);
 
   // Fake Orderbook generation based on current price (Memoized to prevent impurity during render)
   // Ensure we check for activeCoin existence to avoid errors when activeCoin is null
@@ -104,8 +104,9 @@ export default function TradingDashboard() {
 
   if (!activeCoin) return null;
 
-  const isUp = priceHistory.length >= 2
-    ? priceHistory[priceHistory.length - 1].close >= priceHistory[priceHistory.length - 2].close
+  const history = activeCoinId && priceHistoryMap[activeCoinId] ? priceHistoryMap[activeCoinId] : [];
+  const isUp = history.length >= 2
+    ? history[history.length - 1].close >= history[history.length - 2].close
     : true;
 
   const strokeColor = isUp ? '#0ecc83' : '#f6465d';
