@@ -33,7 +33,7 @@ export interface Coin {
   taxRate: number; // Tax percentage (e.g., 5 means 5%)
   liquidityLocked: boolean; // Cannot rug pull if true
   antiSniper: boolean; // 99% tax for first 10 seconds
-  isListedCMC: boolean; // Fast-track listed
+  listingLevel: number; // 0 = DEX, 1 = Tier 3, 2 = Tier 2, 3 = Tier 1
   ownerAddress: string; // To differentiate player coins from bot coins
   airdropActive?: boolean;
   airdropRemaining?: number;
@@ -61,6 +61,12 @@ export interface PlayerWallet {
   username: string;
 }
 
+export interface PlayerUpgrades {
+  botFarm: number; // Boosts social media likes (Lv 0-5)
+  smoothTalker: number; // Reduces negative impact of tax on bot buys (Lv 0-5)
+  hypeAura: number; // Reduces hype decay per tick (Lv 0-5)
+}
+
 export interface GameState {
   // Player State
   playerMoney: number;
@@ -68,6 +74,7 @@ export interface GameState {
   currency: Currency;
   followers: number;
   xp: number;
+  upgrades: PlayerUpgrades;
 
   // Game State
   coins: Record<string, Coin>;
@@ -94,9 +101,12 @@ export interface GameState {
   // Coin Actions
   burnTokens: (coinId: string, amount: number) => void;
   rugPull: (coinId: string) => void;
-  fastTrackList: (coinId: string) => void;
+  fastTrackList: (coinId: string, tier: 1 | 2 | 3) => void;
   startAirdrop: (coinId: string, amount: number) => void;
   buyCoin: (coinId: string, usdAmount: number) => void;
+
+  // Upgrades
+  buyUpgrade: (upgradeKey: keyof PlayerUpgrades, costXP: number) => void;
   sellCoin: (coinId: string, tokenAmount: number) => void;
 
   // Game Loop Actions

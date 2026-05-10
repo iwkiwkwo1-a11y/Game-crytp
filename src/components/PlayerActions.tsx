@@ -37,9 +37,9 @@ export default function PlayerActions() {
   };
 
   const handleFastTrack = () => {
-      if (playerMoney >= 500 && activeCoinId) {
-          fastTrackList(activeCoinId);
-      }
+      if (!activeCoinId) return;
+      const targetTier = activeCoin.listingLevel + 1 as 1 | 2 | 3;
+      fastTrackList(activeCoinId, targetTier);
   };
 
   const handleRugPull = () => {
@@ -64,15 +64,31 @@ export default function PlayerActions() {
           <span>Burn Dev Tokens (10%)</span>
         </button>
 
-        {!activeCoin.isListedCMC && (
+        {activeCoin.listingLevel < 3 && (
             <button
               onClick={handleFastTrack}
-              disabled={playerMoney < 500}
+              disabled={
+                  (activeCoin.listingLevel === 0 && playerMoney < 5000) ||
+                  (activeCoin.listingLevel === 1 && (playerMoney < 25000 || useGameStore.getState().followers < 10000)) ||
+                  (activeCoin.listingLevel === 2 && (playerMoney < 100000 || useGameStore.getState().followers < 50000))
+              }
               className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-700 disabled:text-gray-500 text-white px-4 py-2 rounded-lg font-medium transition-colors w-full sm:w-auto text-sm"
-              title="Pay $500 for instant CMC Listing (Massive Hype & Followers)"
+              title={
+                  activeCoin.listingLevel === 0 ? "Tier 3 Exchange: $5,000" :
+                  activeCoin.listingLevel === 1 ? "Tier 2 Exchange: $25,000 + 10k Followers" :
+                  "Tier 1 Exchange (Binance): $100,000 + 50k Followers"
+              }
             >
               <Rocket size={16} />
-              <span>Fast-Track CMC ({formatMoney(500, currency)})</span>
+              <span>
+                  List on Tier {3 - activeCoin.listingLevel} CEX (
+                  {formatMoney(
+                      activeCoin.listingLevel === 0 ? 5000 :
+                      activeCoin.listingLevel === 1 ? 25000 : 100000,
+                      currency
+                  )}
+                  )
+              </span>
             </button>
         )}
 

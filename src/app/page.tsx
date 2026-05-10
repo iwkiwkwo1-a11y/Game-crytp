@@ -7,13 +7,14 @@ import Portfolio from '@/components/Portfolio';
 import MarketTrending from '@/components/MarketTrending';
 import TradingDashboard from '@/components/TradingDashboard';
 import PlayerActions from '@/components/PlayerActions';
+import UpgradesPanel from '@/components/UpgradesPanel';
 import { useGameStore } from '@/store/gameStore';
 import { useGameLoop } from '@/hooks/useGameLoop';
 
 export default function Home() {
   const playerWallet = useGameStore((state) => state.playerWallet);
   const activeCoinId = useGameStore((state) => state.activeCoinId);
-  const [currentTab, setCurrentTab] = useState<'portfolio' | 'market'>('portfolio');
+  const [currentTab, setCurrentTab] = useState<'portfolio' | 'market' | 'upgrades'>('portfolio');
 
   // Start the game loop (market simulation)
   useGameLoop(1000); // 1 tick per second
@@ -35,7 +36,9 @@ export default function Home() {
       {!playerWallet ? (
         <ConnectWallet />
       ) : !activeCoinId ? (
-        currentTab === 'portfolio' ? <Portfolio /> : <MarketTrending />
+        currentTab === 'portfolio' ? <Portfolio /> :
+        currentTab === 'market' ? <MarketTrending /> :
+        <UpgradesPanel />
       ) : (
         <div className="flex flex-col w-full h-full">
           <TradingDashboard />

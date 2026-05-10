@@ -14,8 +14,8 @@ export function cn(...inputs: (string | undefined | null | false)[]) {
 
 interface LayoutProps {
   children: React.ReactNode;
-  onTabChange?: (tab: 'portfolio' | 'market') => void;
-  currentTab?: 'portfolio' | 'market';
+  onTabChange?: (tab: 'portfolio' | 'market' | 'upgrades') => void;
+  currentTab?: 'portfolio' | 'market' | 'upgrades';
 }
 
 export function formatMoney(amount: number, currency: 'USD' | 'IDR') {
@@ -103,6 +103,15 @@ export default function AppLayout({ children, onTabChange, currentTab }: LayoutP
                 className={`${!activeCoin && currentTab === 'market' ? 'text-white border-b-2 border-[#fcd535]' : 'text-gray-400 hover:text-gray-200'} py-4 transition-colors`}
              >
                 Trending
+             </button>
+             <button
+                onClick={() => {
+                   useGameStore.setState({ activeCoinId: null });
+                   if (onTabChange) onTabChange('upgrades');
+                }}
+                className={`${!activeCoin && currentTab === 'upgrades' ? 'text-white border-b-2 border-[#fcd535]' : 'text-gray-400 hover:text-gray-200'} py-4 transition-colors`}
+             >
+                Upgrades
              </button>
              {activeCoin && (
                 <button

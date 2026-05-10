@@ -21,6 +21,11 @@ export const useGameStore = create<GameState>()(
       currency: 'USD',
       followers: 0,
       xp: 0,
+      upgrades: {
+        botFarm: 0,
+        smoothTalker: 0,
+        hypeAura: 0
+      },
       coins: {},
       activeCoinId: null,
       priceHistory: {},
@@ -52,6 +57,16 @@ export const useGameStore = create<GameState>()(
       setTimeframe: (chartTimeframe) => set({ chartTimeframe }),
 
       setActiveCoinId: (id) => set({ activeCoinId: id }),
+
+      buyUpgrade: (key, cost) => {
+          const { xp, upgrades } = get();
+          if (xp >= cost && upgrades[key] < 5) {
+              set({
+                  xp: xp - cost,
+                  upgrades: { ...upgrades, [key]: upgrades[key] + 1 }
+              });
+          }
+      },
 
       createWallet: (username: string) => {
         set({
@@ -91,7 +106,7 @@ export const useGameStore = create<GameState>()(
           taxRate,
           liquidityLocked: locked,
           antiSniper,
-          isListedCMC: false,
+          listingLevel: 0,
           ownerAddress: playerWallet.address
         };
 
@@ -144,12 +159,14 @@ export const useGameStore = create<GameState>()(
       },
 
       createPost: (coinId, content) => {
-         const { coins, socialPosts, followers } = get();
+         const { coins, socialPosts, followers, upgrades } = get();
          const coin = coins[coinId];
          if (!coin || coin.isRugPulled) return;
 
-         // Calculate likes based on followers and hype
-         const likes = Math.floor(followers * (Math.random() * 0.5 + 0.1) + coin.hype * 2);
+         // Calculate likes based on followers and hype, boosted by botFarm upgrade
+         const baseLikes = Math.floor(followers * (Math.random() * 0.5 + 0.1) + coin.hype * 2);
+         const botFarmMultiplier = 1 + (upgrades.botFarm * 0.5); // +50% likes per level
+         const likes = Math.floor(baseLikes * botFarmMultiplier);
 
          const newPost: SocialPost = {
              id: Date.now().toString(),
@@ -231,20 +248,44 @@ export const useGameStore = create<GameState>()(
         });
       },
 
-      fastTrackList: (coinId) => {
+      fastTrackList: (coinId, tier) => {
         const { coins, playerMoney, followers } = get();
         const coin = coins[coinId];
-        if (!coin || coin.isRugPulled || coin.isListedCMC || playerMoney < 500) return;
+        if (!coin || coin.isRugPulled || coin.listingLevel >= tier) return;
+
+        let cost = 0;
+        let followerReq = 0;
+        let followerGain = 0;
+        let hypeGain = 0;
+
+        if (tier === 1) { // Tier 3 CEX
+            cost = 5000;
+            followerReq = 0;
+            followerGain = 5000;
+            hypeGain = 30;
+        } else if (tier === 2) { // Tier 2 CEX
+            cost = 25000;
+            followerReq = 10000;
+            followerGain = 20000;
+            hypeGain = 60;
+        } else if (tier === 3) { // Tier 1 CEX (Binance)
+            cost = 100000;
+            followerReq = 50000;
+            followerGain = 100000;
+            hypeGain = 100;
+        }
+
+        if (playerMoney < cost || followers < followerReq) return;
 
         set({
-          playerMoney: playerMoney - 500,
-          followers: followers + 5000,
+          playerMoney: playerMoney - cost,
+          followers: followers + followerGain,
           coins: {
             ...coins,
             [coinId]: {
                ...coin,
-               isListedCMC: true,
-               hype: Math.min(100, coin.hype + 40)
+               listingLevel: tier,
+               hype: Math.min(100, coin.hype + hypeGain)
             }
           }
         });
@@ -377,7 +418,7 @@ export const useGameStore = create<GameState>()(
       },
 
       updateMarket: () => {
-        const { coins, priceHistory, coinHolders, playerWallet, playerMoney, newsAlert, followers } = get();
+        const { coins, priceHistory, coinHolders, playerWallet, playerMoney, newsAlert, followers, upgrades } = get();
 
         const now = Date.now();
 
@@ -530,14 +571,24 @@ export const useGameStore = create<GameState>()(
             const k = newReserveToken * newReserveCurrency;
 
             // Hype decay
-            const decayRate = coin.liquidityLocked ? 0.2 : 0.5;
+            let decayRate = coin.liquidityLocked ? 0.2 : 0.5;
+
+            // Player Upgrade: Hype Aura reduces decay on player-owned coins
+            if (coin.ownerAddress === playerWallet?.address) {
+                decayRate -= (upgrades.hypeAura * 0.05); // Up to -0.25 decay reduction
+                decayRate = Math.max(0.05, decayRate); // floor it so it still decays slightly
+            }
+
             newHype = Math.max(1, newHype - decayRate);
 
             const activityLevel = Math.max(0.01, newHype / 100);
 
             // Determine if buy or sell pressure is higher
             const trustBonus = coin.liquidityLocked ? 0.1 : 0;
-            const listedBonus = coin.isListedCMC ? 0.15 : 0;
+
+            // Listing Tier bonuses (0.05, 0.10, 0.15)
+            const listedBonus = coin.listingLevel * 0.05;
+
             const buyProbability = 0.2 + (newHype / 200) + trustBonus + listedBonus;
 
             const isBuy = Math.random() < buyProbability;
@@ -550,7 +601,18 @@ export const useGameStore = create<GameState>()(
 
             // Anti-sniper tax (99%) if within 10s of creation
             const isAntiSniperActive = coin.antiSniper && (now - coin.createdAt < 10000);
-            const currentTaxRate = isAntiSniperActive ? 99 : coin.taxRate;
+
+            // Player Upgrade: Smooth Talker reduces perceived tax rate so bots buy more often despite tax
+            // Doesn't apply to anti-sniper. It effectively reduces the true tax collected slightly,
+            // OR we can just say it reduces the negative psychological impact on buyProbability.
+            // Let's just use it to artificially lower the tax rate applied to bot buys.
+            let currentTaxRate = coin.taxRate;
+            if (!isAntiSniperActive && coin.ownerAddress === playerWallet?.address && upgrades.smoothTalker > 0 && currentTaxRate > 0) {
+                 // For example, 10% tax. Smooth talker lv 5 makes bots only pay 5% tax.
+                 // (Less tax for player, but bots get more tokens -> less selling pressure later)
+                 currentTaxRate = Math.max(0, currentTaxRate - upgrades.smoothTalker);
+            }
+            if (isAntiSniperActive) currentTaxRate = 99;
 
             if (isBuy) {
                 let dy = newReserveCurrency * tradePct;
