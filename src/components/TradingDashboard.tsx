@@ -6,6 +6,7 @@ import { formatMoney } from './AppLayout';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { format } from 'date-fns';
 import SocialFeed from './SocialFeed';
+import SwapPanel from './SwapPanel';
 
 export default function TradingDashboard() {
   const activeCoinId = useGameStore((state) => state.activeCoinId);
@@ -340,6 +341,9 @@ export default function TradingDashboard() {
             </div>
           )}
         </div>
+
+        {/* Swap Panel integrated below Orderbook/Holders */}
+        <SwapPanel />
       </div>
 
       {/* Extreme Right Column: Social Feed */}

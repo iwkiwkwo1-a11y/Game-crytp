@@ -39,6 +39,14 @@ export interface Coin {
   airdropRemaining?: number;
 }
 
+export interface ToastMessage {
+  id: string;
+  type: 'success' | 'error' | 'info' | 'warning';
+  title: string;
+  message: string;
+  timestamp: number;
+}
+
 export interface SocialPost {
   id: string;
   time: number;
@@ -59,6 +67,7 @@ export interface GameState {
   playerWallet: PlayerWallet | null;
   currency: Currency;
   followers: number;
+  xp: number;
 
   // Game State
   coins: Record<string, Coin>;
@@ -68,9 +77,13 @@ export interface GameState {
   socialPosts: Record<string, SocialPost[]>;
   chartTimeframe: Timeframe;
   newsAlert: string | null;
+  toasts: ToastMessage[];
 
   // Actions
   setCurrency: (currency: Currency) => void;
+  addToast: (title: string, message: string, type?: ToastMessage['type']) => void;
+  removeToast: (id: string) => void;
+  gainXp: (amount: number) => void;
   setTimeframe: (tf: Timeframe) => void;
   createWallet: (username: string) => void;
   setActiveCoinId: (id: string | null) => void;
@@ -83,6 +96,8 @@ export interface GameState {
   rugPull: (coinId: string) => void;
   fastTrackList: (coinId: string) => void;
   startAirdrop: (coinId: string, amount: number) => void;
+  buyCoin: (coinId: string, usdAmount: number) => void;
+  sellCoin: (coinId: string, tokenAmount: number) => void;
 
   // Game Loop Actions
   updateMarket: () => void;

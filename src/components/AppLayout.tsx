@@ -6,6 +6,7 @@ import { Wallet, TrendingUp, RefreshCw } from 'lucide-react';
 import clsx from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import TopSettings from './TopSettings';
+import ToastContainer from './ToastContainer';
 
 export function cn(...inputs: (string | undefined | null | false)[]) {
   return twMerge(clsx(inputs));
@@ -34,9 +35,18 @@ export function formatMoney(amount: number, currency: 'USD' | 'IDR') {
   }
 }
 
+export function getReputation(xp: number) {
+  if (xp < 100) return { title: 'Broke Degen', level: 1, nextAt: 100, progress: xp / 100 };
+  if (xp < 500) return { title: 'Gambler', level: 2, nextAt: 500, progress: (xp - 100) / 400 };
+  if (xp < 2000) return { title: 'Shill Master', level: 3, nextAt: 2000, progress: (xp - 500) / 1500 };
+  if (xp < 10000) return { title: 'Whale', level: 4, nextAt: 10000, progress: (xp - 2000) / 8000 };
+  return { title: 'Meme Cartel Boss', level: 5, nextAt: xp, progress: 1 };
+}
+
 export default function AppLayout({ children, onTabChange, currentTab }: LayoutProps) {
   const playerMoney = useGameStore((state) => state.playerMoney);
   const currency = useGameStore((state) => state.currency);
+  const xp = useGameStore((state) => state.xp);
   const activeCoinId = useGameStore((state) => state.activeCoinId);
   const coins = useGameStore((state) => state.coins);
   const activeCoin = activeCoinId ? coins[activeCoinId] : null;
@@ -106,6 +116,18 @@ export default function AppLayout({ children, onTabChange, currentTab }: LayoutP
         </div>
 
         <div className="flex items-center gap-6">
+
+          {/* Reputation Badge */}
+          <div className="hidden md:flex flex-col items-end mr-4">
+             <span className="text-xs text-gray-400 font-medium">Lv. {getReputation(xp).level} {getReputation(xp).title}</span>
+             <div className="w-24 h-1.5 bg-gray-800 rounded-full mt-1 overflow-hidden">
+                <div
+                   className="h-full bg-[#fcd535]"
+                   style={{ width: `${getReputation(xp).progress * 100}%` }}
+                />
+             </div>
+          </div>
+
           <div className="flex items-center gap-2 text-green-400 bg-green-400/10 px-4 py-2 rounded-lg font-medium border border-green-400/20">
             <Wallet size={18} />
             {formatMoney(playerMoney, currency)}
@@ -127,6 +149,8 @@ export default function AppLayout({ children, onTabChange, currentTab }: LayoutP
       <main className="flex-1 flex overflow-hidden">
         {children}
       </main>
+
+      <ToastContainer />
     </div>
   );
 }

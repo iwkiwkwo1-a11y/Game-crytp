@@ -20,6 +20,7 @@ export const useGameStore = create<GameState>()(
       playerWallet: null,
       currency: 'USD',
       followers: 0,
+      xp: 0,
       coins: {},
       activeCoinId: null,
       priceHistory: {},
@@ -27,8 +28,26 @@ export const useGameStore = create<GameState>()(
       chartTimeframe: '1s',
       socialPosts: {},
       newsAlert: null,
+      toasts: [],
 
       setCurrency: (currency) => set({ currency }),
+
+      addToast: (title, message, type = 'info') => {
+          const { toasts } = get();
+          const newToast = { id: Date.now().toString() + Math.random(), title, message, type, timestamp: Date.now() };
+          // Keep only last 5 toasts
+          set({ toasts: [...toasts, newToast].slice(-5) });
+      },
+
+      removeToast: (id) => {
+          const { toasts } = get();
+          set({ toasts: toasts.filter(t => t.id !== id) });
+      },
+
+      gainXp: (amount) => {
+          const { xp } = get();
+          set({ xp: xp + amount });
+      },
 
       setTimeframe: (chartTimeframe) => set({ chartTimeframe }),
 
@@ -119,7 +138,8 @@ export const useGameStore = create<GameState>()(
           activeCoinId: coinId,
           priceHistory: { ...priceHistory, [coinId]: [initialPricePoint] },
           coinHolders: { ...coinHolders, [coinId]: holders },
-          socialPosts: { ...socialPosts, [coinId]: [] }
+          socialPosts: { ...socialPosts, [coinId]: [] },
+          xp: get().xp + 50 // Gain XP for deploying
         });
       },
 
@@ -256,6 +276,106 @@ export const useGameStore = create<GameState>()(
          });
       },
 
+      buyCoin: (coinId, usdAmount) => {
+          const { coins, coinHolders, playerWallet, playerMoney, xp } = get();
+          const coin = coins[coinId];
+          if (!coin || coin.isRugPulled || !playerWallet || playerMoney < usdAmount || usdAmount <= 0) return;
+
+          const updatedHolders = { ...coinHolders[coinId] };
+          if (!updatedHolders[playerWallet.address]) {
+              updatedHolders[playerWallet.address] = {
+                  address: playerWallet.address,
+                  name: playerWallet.username + (coin.ownerAddress === playerWallet.address ? ' (Dev)' : ''),
+                  balance: 0,
+                  isPlayer: true
+              };
+          }
+
+          // AMM logic
+          const k = coin.reserveToken * coin.reserveCurrency;
+          let dy = usdAmount;
+          let taxToDev = 0;
+
+          if (coin.taxRate > 0) {
+              taxToDev = dy * (coin.taxRate / 100);
+              dy = dy - taxToDev;
+          }
+
+          const newY = coin.reserveCurrency + dy;
+          const newX = k / newY;
+          const tokensReceived = coin.reserveToken - newX;
+
+          updatedHolders[playerWallet.address].balance += tokensReceived;
+          if (updatedHolders['liquidity_pool']) {
+              updatedHolders['liquidity_pool'].balance = newX;
+          }
+
+          // If the player is the dev, they receive their own tax back
+          const isDev = coin.ownerAddress === playerWallet.address;
+          const finalPlayerMoney = playerMoney - usdAmount + (isDev ? taxToDev : 0);
+
+          set({
+              playerMoney: finalPlayerMoney,
+              coins: {
+                  ...coins,
+                  [coinId]: {
+                      ...coin,
+                      reserveCurrency: newY,
+                      reserveToken: newX,
+                      hype: Math.min(100, coin.hype + 5) // Buying manually adds hype
+                  }
+              },
+              coinHolders: { ...coinHolders, [coinId]: updatedHolders },
+              xp: xp + Math.floor(usdAmount / 100) // Gain 1 XP per $100 traded
+          });
+      },
+
+      sellCoin: (coinId, tokenAmount) => {
+          const { coins, coinHolders, playerWallet, playerMoney } = get();
+          const coin = coins[coinId];
+          if (!coin || coin.isRugPulled || !playerWallet || tokenAmount <= 0) return;
+
+          const updatedHolders = { ...coinHolders[coinId] };
+          const playerBalance = updatedHolders[playerWallet.address]?.balance || 0;
+          if (playerBalance < tokenAmount) return;
+
+          // AMM logic
+          const k = coin.reserveToken * coin.reserveCurrency;
+          const dx = tokenAmount;
+
+          const newX = coin.reserveToken + dx;
+          const newY = k / newX;
+          let dy = coin.reserveCurrency - newY;
+          let taxToDev = 0;
+
+          if (coin.taxRate > 0) {
+              taxToDev = dy * (coin.taxRate / 100);
+              dy = dy - taxToDev;
+          }
+
+          updatedHolders[playerWallet.address].balance -= tokenAmount;
+          if (updatedHolders['liquidity_pool']) {
+              updatedHolders['liquidity_pool'].balance = newX;
+          }
+
+          const isDev = coin.ownerAddress === playerWallet.address;
+          const finalPlayerMoney = playerMoney + dy + (isDev ? taxToDev : 0);
+
+          set({
+              playerMoney: finalPlayerMoney,
+              coins: {
+                  ...coins,
+                  [coinId]: {
+                      ...coin,
+                      reserveCurrency: newY,
+                      reserveToken: newX,
+                      hype: Math.max(1, coin.hype - 2) // Selling drops hype
+                  }
+              },
+              coinHolders: { ...coinHolders, [coinId]: updatedHolders }
+          });
+      },
+
       updateMarket: () => {
         const { coins, priceHistory, coinHolders, playerWallet, playerMoney, newsAlert, followers } = get();
 
@@ -267,6 +387,72 @@ export const useGameStore = create<GameState>()(
         const newCoins = { ...coins };
         const newPriceHistory = { ...priceHistory };
         const newCoinHolders = { ...coinHolders };
+
+        // --- BOT COIN GENERATOR ---
+        // 1% chance per tick to generate a random bot coin to compete in DexTrending
+        // Limit to 20 total coins to avoid performance degradation
+        if (Math.random() < 0.01 && Object.keys(newCoins).length < 20) {
+            const prefix = ['Pepe', 'Doge', 'Shib', 'Floki', 'Cat', 'Moon', 'Safe', 'Based', 'Chad', 'Wif'];
+            const suffix = ['Rocket', 'Inu', 'CEO', 'Hat', 'AI', 'GPT', 'Degen', 'Moon', 'Mars', 'Safe'];
+            const randomName = `${prefix[Math.floor(Math.random() * prefix.length)]} ${suffix[Math.floor(Math.random() * suffix.length)]}`;
+            const randomSymbol = randomName.substring(0, 4).toUpperCase().replace(' ', '');
+            const botSupply = 1000000000;
+            const botLiquidity = Math.floor(Math.random() * 5000) + 500;
+            const botPrice = botLiquidity / botSupply;
+
+            const botCoinId = `bot_${Date.now()}_${Math.random()}`;
+            const botAddr = generateFakeAddress();
+
+            newCoins[botCoinId] = {
+                id: botCoinId,
+                name: randomName,
+                symbol: randomSymbol,
+                totalSupply: botSupply,
+                circulatingSupply: botSupply,
+                reserveToken: botSupply,
+                reserveCurrency: botLiquidity,
+                hype: Math.floor(Math.random() * 20) + 5, // Start with some initial hype
+                createdAt: now,
+                isRugPulled: false,
+                developerTokens: 0,
+                ath: botPrice,
+                atl: botPrice,
+                taxRate: Math.floor(Math.random() * 10), // Random tax 0-9%
+                liquidityLocked: Math.random() > 0.5,
+                antiSniper: false,
+                isListedCMC: false,
+                ownerAddress: botAddr
+            };
+
+            newPriceHistory[botCoinId] = [{
+                time: now,
+                open: botPrice,
+                high: botPrice,
+                low: botPrice,
+                close: botPrice,
+                volume: 0
+            }];
+
+            newCoinHolders[botCoinId] = {
+                'liquidity_pool': {
+                    address: '0x000000000000000000000000000000000000dead',
+                    name: 'Liquidity Pool',
+                    balance: botSupply,
+                    isPlayer: false
+                }
+            };
+
+            // Add a global toast for new trending coin
+            const { toasts } = get();
+            const newToast = {
+                id: Date.now().toString(),
+                title: 'New Token Launched!',
+                message: `${randomName} ($${randomSymbol}) was just deployed.`,
+                type: 'info' as const,
+                timestamp: Date.now()
+            };
+            set({ toasts: [...toasts, newToast].slice(-5) });
+        }
 
         // --- RANDOM NEWS EVENTS (FOMO / FUD) ---
         // 0.5% chance per tick to generate news if no active news
@@ -414,6 +600,18 @@ export const useGameStore = create<GameState>()(
                     newReserveToken = newX;
                     volume += dy;
                     botTokensGained += tokensReceived;
+
+                    if (dy > 200) {
+                        const { toasts } = get();
+                        const newToast = {
+                            id: Date.now().toString() + Math.random(),
+                            title: 'Whale Alert!',
+                            message: `Massive BUY of $${dy.toFixed(0)} on ${coin.symbol}!`,
+                            type: 'success' as const,
+                            timestamp: Date.now()
+                        };
+                        set({ toasts: [...toasts, newToast].slice(-5) });
+                    }
                 } else {
                     const dx = newReserveToken * whaleTradePct;
                     const newX = newReserveToken + dx;
@@ -428,12 +626,37 @@ export const useGameStore = create<GameState>()(
                     newReserveCurrency = newY;
                     volume += dy;
                     botTokensLost += dx;
+
+                    if (dy > 200) {
+                        const { toasts } = get();
+                        const newToast = {
+                            id: Date.now().toString() + Math.random(),
+                            title: 'Whale Dump!',
+                            message: `Massive SELL of $${dy.toFixed(0)} on ${coin.symbol}!`,
+                            type: 'error' as const,
+                            timestamp: Date.now()
+                        };
+                        set({ toasts: [...toasts, newToast].slice(-5) });
+                    }
                 }
             }
 
             // Tax to developer wallet (only if player owns the coin)
             if (taxCollected > 0 && coin.ownerAddress === playerWallet?.address) {
                 newPlayerMoney += taxCollected;
+
+                // Add toast for tax revenue occasionally if it's large enough to avoid spam
+                if (taxCollected > 10) {
+                    const { toasts } = get();
+                    const newToast = {
+                        id: Date.now().toString() + Math.random(),
+                        title: 'Tax Collected!',
+                        message: `You earned $${taxCollected.toFixed(2)} from ${coin.symbol} trades.`,
+                        type: 'success' as const,
+                        timestamp: Date.now()
+                    };
+                    set({ toasts: [...toasts, newToast].slice(-5) });
+                }
             }
 
             if (botAddresses.length > 0) {
