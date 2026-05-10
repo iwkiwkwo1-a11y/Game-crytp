@@ -59,3 +59,132 @@
        please check the style of container, or the props width(100%) and height(100%),
        or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
        height and width.
+⨯ ./src/app/page.tsx:12:8
+the name `React` is defined multiple times
+  [90m10 |[0m [36mimport[0m { useGameStore } [36mfrom[0m [32m'@/store/gameStore'[0m;
+  [90m11 |[0m [36mimport[0m { useGameLoop } [36mfrom[0m [32m'@/hooks/useGameLoop'[0m;
+[31m[1m>[0m [90m12 |[0m [36mimport[0m [33mReact[0m, { useState } [36mfrom[0m [32m'react'[0m;
+  [90m   |[0m        [31m[1m^^^^^[0m
+  [90m13 |[0m
+  [90m14 |[0m [36mexport[0m [36mdefault[0m [36mfunction[0m [33mHome[0m() {
+  [90m15 |[0m   [36mconst[0m playerWallet = useGameStore((state) => state.playerWallet);
+
+Ecmascript file had an error
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+
+
+○ Compiling /_error ...
+ GET / 500 in 5.9s (next.js: 4.6s, application-code: 1302ms)
+[browser] Uncaught Error: ./src/app/page.tsx:12:8
+the name `React` is defined multiple times
+  10 | import { useGameStore } from '@/store/gameStore';
+  11 | import { useGameLoop } from '@/hooks/useGameLoop';
+> 12 | import React, { useState } from 'react';
+     |        ^^^^^
+  13 |
+  14 | export default function Home() {
+  15 |   const playerWallet = useGameStore((state) => state.playerWallet);
+
+Ecmascript file had an error
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+
+
+    at <unknown> (Error: ./src/app/page.tsx:12:8)
+    at <unknown> (Error: (./src/app/page.tsx:12:8)
+[browser] ./src/app/page.tsx:12:8
+the name `React` is defined multiple times
+  10 | import { useGameStore } from '@/store/gameStore';
+  11 | import { useGameLoop } from '@/hooks/useGameLoop';
+> 12 | import React, { useState } from 'react';
+     |        ^^^^^
+  13 |
+  14 | export default function Home() {
+  15 |   const playerWallet = useGameStore((state) => state.playerWallet);
+
+Ecmascript file had an error
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+[browser] ./src/app/page.tsx:12:8
+the name `React` is defined multiple times
+  10 | import { useGameStore } from '@/store/gameStore';
+  11 | import { useGameLoop } from '@/hooks/useGameLoop';
+> 12 | import React, { useState } from 'react';
+     |        ^^^^^
+  13 |
+  14 | export default function Home() {
+  15 |   const playerWallet = useGameStore((state) => state.playerWallet);
+
+Ecmascript file had an error
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+[browser] ./src/app/page.tsx:12:8
+the name `React` is defined multiple times
+  10 | import { useGameStore } from '@/store/gameStore';
+  11 | import { useGameLoop } from '@/hooks/useGameLoop';
+> 12 | import React, { useState } from 'react';
+     |        ^^^^^
+  13 |
+  14 | export default function Home() {
+  15 |   const playerWallet = useGameStore((state) => state.playerWallet);
+
+Ecmascript file had an error
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+[browser] ./src/app/page.tsx:12:8
+the name `React` is defined multiple times
+  10 | import { useGameStore } from '@/store/gameStore';
+  11 | import { useGameLoop } from '@/hooks/useGameLoop';
+> 12 | import React, { useState } from 'react';
+     |        ^^^^^
+  13 |
+  14 | export default function Home() {
+  15 |   const playerWallet = useGameStore((state) => state.playerWallet);
+
+Ecmascript file had an error
+
+Import traces:
+  Client Component Browser:
+    ./src/app/page.tsx [Client Component Browser]
+    ./src/app/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./src/app/page.tsx [Client Component SSR]
+    ./src/app/page.tsx [Server Component]
+✓ Compiled in 77ms

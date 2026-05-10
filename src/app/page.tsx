@@ -1,9 +1,10 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import AppLayout from '@/components/AppLayout';
 import ConnectWallet from '@/components/ConnectWallet';
-import CreateCoinForm from '@/components/CreateCoinForm';
+import Portfolio from '@/components/Portfolio';
+import MarketTrending from '@/components/MarketTrending';
 import TradingDashboard from '@/components/TradingDashboard';
 import PlayerActions from '@/components/PlayerActions';
 import { useGameStore } from '@/store/gameStore';
@@ -11,7 +12,8 @@ import { useGameLoop } from '@/hooks/useGameLoop';
 
 export default function Home() {
   const playerWallet = useGameStore((state) => state.playerWallet);
-  const activeCoin = useGameStore((state) => state.activeCoin);
+  const activeCoinId = useGameStore((state) => state.activeCoinId);
+  const [currentTab, setCurrentTab] = useState<'portfolio' | 'market'>('portfolio');
 
   // Start the game loop (market simulation)
   useGameLoop(1000); // 1 tick per second
@@ -29,11 +31,11 @@ export default function Home() {
   if (!isClient) return <div className="min-h-screen bg-[#0b0e11]" />;
 
   return (
-    <AppLayout>
+    <AppLayout onTabChange={setCurrentTab} currentTab={currentTab}>
       {!playerWallet ? (
         <ConnectWallet />
-      ) : !activeCoin ? (
-        <CreateCoinForm />
+      ) : !activeCoinId ? (
+        currentTab === 'portfolio' ? <Portfolio /> : <MarketTrending />
       ) : (
         <div className="flex flex-col w-full h-full">
           <TradingDashboard />

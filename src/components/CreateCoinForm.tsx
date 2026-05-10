@@ -5,7 +5,7 @@ import { useGameStore } from '../store/gameStore';
 import { formatMoney } from './AppLayout';
 import { Rocket, AlertTriangle, Lock, Percent } from 'lucide-react';
 
-export default function CreateCoinForm() {
+export default function CreateCoinForm({ onDeploySuccess }: { onDeploySuccess?: () => void }) {
   const { playerMoney, currency, deployCoin } = useGameStore();
 
   const [name, setName] = useState('');
@@ -40,7 +40,12 @@ export default function CreateCoinForm() {
       return;
     }
 
-    deployCoin(name, symbol.toUpperCase(), parsedSupply, parsedLiquidity, taxRate, locked);
+    const antiSniper = locked; // Just as a simple correlation, or could add another checkbox
+    deployCoin(name, symbol.toUpperCase(), parsedSupply, parsedLiquidity, taxRate, locked, antiSniper);
+
+    if (onDeploySuccess) {
+      onDeploySuccess();
+    }
   };
 
   return (

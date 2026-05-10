@@ -32,6 +32,11 @@ export interface Coin {
   atl: number; // All Time Low (USD)
   taxRate: number; // Tax percentage (e.g., 5 means 5%)
   liquidityLocked: boolean; // Cannot rug pull if true
+  antiSniper: boolean; // 99% tax for first 10 seconds
+  isListedCMC: boolean; // Fast-track listed
+  ownerAddress: string; // To differentiate player coins from bot coins
+  airdropActive?: boolean;
+  airdropRemaining?: number;
 }
 
 export interface SocialPost {
@@ -55,24 +60,29 @@ export interface GameState {
   currency: Currency;
   followers: number;
 
-  // Active Game State
-  activeCoin: Coin | null;
-  priceHistory: PricePoint[]; // Always stores 1s tick data (up to maybe 500-1000 points max to avoid memory bloat)
-  coinHolders: Record<string, Holder>;
+  // Game State
+  coins: Record<string, Coin>;
+  activeCoinId: string | null;
+  priceHistory: Record<string, PricePoint[]>; // Always stores 1s tick data
+  coinHolders: Record<string, Record<string, Holder>>;
+  socialPosts: Record<string, SocialPost[]>;
   chartTimeframe: Timeframe;
-  socialPosts: SocialPost[];
   newsAlert: string | null;
 
   // Actions
   setCurrency: (currency: Currency) => void;
   setTimeframe: (tf: Timeframe) => void;
   createWallet: (username: string) => void;
-  deployCoin: (name: string, symbol: string, supply: number, initialLiquidity: number, taxRate: number, locked: boolean) => void;
-  createPost: (content: string) => void;
+  setActiveCoinId: (id: string | null) => void;
+  deployCoin: (name: string, symbol: string, supply: number, initialLiquidity: number, taxRate: number, locked: boolean, antiSniper: boolean) => void;
+  createPost: (coinId: string, content: string) => void;
   clearNews: () => void;
 
-  burnTokens: (amount: number) => void;
-  rugPull: () => void;
+  // Coin Actions
+  burnTokens: (coinId: string, amount: number) => void;
+  rugPull: (coinId: string) => void;
+  fastTrackList: (coinId: string) => void;
+  startAirdrop: (coinId: string, amount: number) => void;
 
   // Game Loop Actions
   updateMarket: () => void;

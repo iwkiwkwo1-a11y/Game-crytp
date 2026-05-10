@@ -5,22 +5,26 @@ import { useGameStore } from '../store/gameStore';
 import { Heart, MessageSquare, Share2, Send } from 'lucide-react';
 
 export default function SocialFeed() {
-  const socialPosts = useGameStore((state) => state.socialPosts);
+  const activeCoinId = useGameStore((state) => state.activeCoinId);
+  const coins = useGameStore((state) => state.coins);
+  const activeCoin = activeCoinId ? coins[activeCoinId] : null;
+  const socialPostsMap = useGameStore((state) => state.socialPosts);
   const createPost = useGameStore((state) => state.createPost);
   const followers = useGameStore((state) => state.followers);
-  const activeCoin = useGameStore((state) => state.activeCoin);
   const playerWallet = useGameStore((state) => state.playerWallet);
 
   const [postContent, setPostContent] = useState('');
 
   const handlePost = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!postContent.trim() || !activeCoin) return;
-    createPost(postContent);
+    if (!postContent.trim() || !activeCoinId || !activeCoin) return;
+    createPost(activeCoinId, postContent);
     setPostContent('');
   };
 
-  if (!activeCoin || !playerWallet) return null;
+  if (!activeCoin || !activeCoinId || !playerWallet) return null;
+
+  const socialPosts = socialPostsMap[activeCoinId] || [];
 
   return (
     <div className="w-full lg:w-80 bg-[#181a20] border-l border-gray-800 flex flex-col shrink-0">

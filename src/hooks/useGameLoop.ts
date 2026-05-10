@@ -5,13 +5,14 @@ import { useGameStore } from '../store/gameStore';
 
 export function useGameLoop(intervalMs: number = 1000) {
   const updateMarket = useGameStore((state) => state.updateMarket);
-  const activeCoin = useGameStore((state) => state.activeCoin);
+  const playerWallet = useGameStore((state) => state.playerWallet);
+  const coins = useGameStore((state) => state.coins);
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    // Only run loop if there's an active coin and it hasn't been rug pulled
-    if (!activeCoin || activeCoin.isRugPulled) {
+    // Only run loop if player has connected wallet and there are coins
+    if (!playerWallet || Object.keys(coins).length === 0) {
         if (timerRef.current) {
             clearInterval(timerRef.current);
             timerRef.current = null;
@@ -31,5 +32,5 @@ export function useGameLoop(intervalMs: number = 1000) {
         timerRef.current = null;
       }
     };
-  }, [activeCoin, activeCoin?.id, activeCoin?.isRugPulled, intervalMs, updateMarket]);
+  }, [playerWallet, coins, intervalMs, updateMarket]);
 }

@@ -13,6 +13,8 @@ export function cn(...inputs: (string | undefined | null | false)[]) {
 
 interface LayoutProps {
   children: React.ReactNode;
+  onTabChange?: (tab: 'portfolio' | 'market') => void;
+  currentTab?: 'portfolio' | 'market';
 }
 
 export function formatMoney(amount: number, currency: 'USD' | 'IDR') {
@@ -32,10 +34,12 @@ export function formatMoney(amount: number, currency: 'USD' | 'IDR') {
   }
 }
 
-export default function AppLayout({ children }: LayoutProps) {
+export default function AppLayout({ children, onTabChange, currentTab }: LayoutProps) {
   const playerMoney = useGameStore((state) => state.playerMoney);
   const currency = useGameStore((state) => state.currency);
-  const activeCoin = useGameStore((state) => state.activeCoin);
+  const activeCoinId = useGameStore((state) => state.activeCoinId);
+  const coins = useGameStore((state) => state.coins);
+  const activeCoin = activeCoinId ? coins[activeCoinId] : null;
   const resetGame = useGameStore((state) => state.resetGame);
 
   const newsAlert = useGameStore((state) => state.newsAlert);
@@ -63,16 +67,42 @@ export default function AppLayout({ children }: LayoutProps) {
       {/* Top Navbar */}
       <nav className="h-16 border-b border-gray-800 bg-[#181a20] flex items-center justify-between px-6 shrink-0 relative z-40">
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 text-[#fcd535] font-bold text-xl">
+          <button
+             onClick={() => useGameStore.setState({ activeCoinId: null })}
+             className="flex items-center gap-2 text-[#fcd535] font-bold text-xl cursor-pointer hover:opacity-80 transition-opacity"
+          >
             <TrendingUp size={24} />
             <span>MemeDEX</span>
+          </button>
+
+          <div className="ml-8 hidden sm:flex items-center gap-6 text-sm font-medium">
+             <button
+                onClick={() => {
+                   useGameStore.setState({ activeCoinId: null });
+                   if (onTabChange) onTabChange('portfolio');
+                }}
+                className={`${!activeCoin && currentTab === 'portfolio' ? 'text-white border-b-2 border-[#fcd535]' : 'text-gray-400 hover:text-gray-200'} py-4 transition-colors`}
+             >
+                Portfolio
+             </button>
+             <button
+                onClick={() => {
+                   useGameStore.setState({ activeCoinId: null });
+                   if (onTabChange) onTabChange('market');
+                }}
+                className={`${!activeCoin && currentTab === 'market' ? 'text-white border-b-2 border-[#fcd535]' : 'text-gray-400 hover:text-gray-200'} py-4 transition-colors`}
+             >
+                Trending
+             </button>
+             {activeCoin && (
+                <button
+                    className="text-white border-b-2 border-[#fcd535] py-4 transition-colors flex items-center gap-2"
+                >
+                    <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                    Terminal: {activeCoin.symbol}
+                </button>
+             )}
           </div>
-          {activeCoin && (
-            <div className="ml-8 flex items-center gap-2 bg-gray-800/50 px-3 py-1.5 rounded-md text-sm border border-gray-700">
-              <span className="text-gray-400">Active:</span>
-              <span className="font-semibold text-white">{activeCoin.symbol}</span>
-            </div>
-          )}
         </div>
 
         <div className="flex items-center gap-6">

@@ -20,16 +20,19 @@ export const useGameStore = create<GameState>()(
       playerWallet: null,
       currency: 'USD',
       followers: 0,
-      activeCoin: null,
-      priceHistory: [],
+      coins: {},
+      activeCoinId: null,
+      priceHistory: {},
       coinHolders: {},
       chartTimeframe: '1s',
-      socialPosts: [],
+      socialPosts: {},
       newsAlert: null,
 
       setCurrency: (currency) => set({ currency }),
 
       setTimeframe: (chartTimeframe) => set({ chartTimeframe }),
+
+      setActiveCoinId: (id) => set({ activeCoinId: id }),
 
       createWallet: (username: string) => {
         set({
@@ -40,8 +43,8 @@ export const useGameStore = create<GameState>()(
         });
       },
 
-      deployCoin: (name, symbol, supply, initialLiquidity, taxRate, locked) => {
-        const { playerMoney, playerWallet } = get();
+      deployCoin: (name, symbol, supply, initialLiquidity, taxRate, locked, antiSniper) => {
+        const { playerMoney, playerWallet, coins, priceHistory, coinHolders, socialPosts } = get();
         if (playerMoney < initialLiquidity || !playerWallet) return;
 
         // Player puts in initialLiquidity, and all supply into the pool initially
@@ -50,8 +53,10 @@ export const useGameStore = create<GameState>()(
 
         const initialPrice = initialLiquidity / poolTokens;
 
+        const coinId = Date.now().toString();
+
         const newCoin: Coin = {
-          id: Date.now().toString(),
+          id: coinId,
           name,
           symbol,
           totalSupply: supply,
@@ -65,7 +70,10 @@ export const useGameStore = create<GameState>()(
           ath: initialPrice,
           atl: initialPrice,
           taxRate,
-          liquidityLocked: locked
+          liquidityLocked: locked,
+          antiSniper,
+          isListedCMC: false,
+          ownerAddress: playerWallet.address
         };
 
         const initialPricePoint: PricePoint = {
@@ -107,20 +115,21 @@ export const useGameStore = create<GameState>()(
 
         set({
           playerMoney: playerMoney - initialLiquidity,
-          activeCoin: newCoin,
-          priceHistory: [initialPricePoint],
-          coinHolders: holders,
-          socialPosts: [],
-          newsAlert: null
+          coins: { ...coins, [coinId]: newCoin },
+          activeCoinId: coinId,
+          priceHistory: { ...priceHistory, [coinId]: [initialPricePoint] },
+          coinHolders: { ...coinHolders, [coinId]: holders },
+          socialPosts: { ...socialPosts, [coinId]: [] }
         });
       },
 
-      createPost: (content) => {
-         const { activeCoin, socialPosts, followers } = get();
-         if (!activeCoin || activeCoin.isRugPulled) return;
+      createPost: (coinId, content) => {
+         const { coins, socialPosts, followers } = get();
+         const coin = coins[coinId];
+         if (!coin || coin.isRugPulled) return;
 
          // Calculate likes based on followers and hype
-         const likes = Math.floor(followers * (Math.random() * 0.5 + 0.1) + activeCoin.hype * 2);
+         const likes = Math.floor(followers * (Math.random() * 0.5 + 0.1) + coin.hype * 2);
 
          const newPost: SocialPost = {
              id: Date.now().toString(),
@@ -131,89 +140,133 @@ export const useGameStore = create<GameState>()(
 
          // Posting boosts hype slightly and gains followers
          set({
-             socialPosts: [newPost, ...socialPosts],
+             socialPosts: { ...socialPosts, [coinId]: [newPost, ...(socialPosts[coinId] || [])] },
              followers: followers + Math.floor(Math.random() * 50 + 10),
-             activeCoin: {
-                 ...activeCoin,
-                 hype: Math.min(100, activeCoin.hype + 5 + (likes / 100))
+             coins: {
+                 ...coins,
+                 [coinId]: { ...coin, hype: Math.min(100, coin.hype + 5 + (likes / 100)) }
              }
          });
       },
 
       clearNews: () => set({ newsAlert: null }),
 
-      burnTokens: (amount) => {
-        const { activeCoin, coinHolders, playerWallet } = get();
-        if (!activeCoin || activeCoin.isRugPulled || !playerWallet) return;
-        if (activeCoin.developerTokens < amount) return;
+      burnTokens: (coinId, amount) => {
+        const { coins, coinHolders, playerWallet } = get();
+        const coin = coins[coinId];
+        if (!coin || coin.isRugPulled || !playerWallet) return;
+        if (coin.developerTokens < amount) return;
 
-        const updatedHolders = { ...coinHolders };
+        const updatedHolders = { ...coinHolders[coinId] };
         if (updatedHolders[playerWallet.address]) {
             updatedHolders[playerWallet.address].balance -= amount;
         }
 
         set({
-          activeCoin: {
-            ...activeCoin,
-            developerTokens: activeCoin.developerTokens - amount,
-            totalSupply: activeCoin.totalSupply - amount,
-            circulatingSupply: activeCoin.circulatingSupply - amount,
+          coins: {
+            ...coins,
+            [coinId]: {
+              ...coin,
+              developerTokens: coin.developerTokens - amount,
+              totalSupply: coin.totalSupply - amount,
+              circulatingSupply: coin.circulatingSupply - amount,
+            }
           },
-          coinHolders: updatedHolders
+          coinHolders: { ...coinHolders, [coinId]: updatedHolders }
         });
       },
 
-      rugPull: () => {
-        const { activeCoin, playerMoney, coinHolders, playerWallet } = get();
-        if (!activeCoin || activeCoin.isRugPulled || !playerWallet || activeCoin.liquidityLocked) return;
+      rugPull: (coinId) => {
+        const { coins, playerMoney, coinHolders, playerWallet } = get();
+        const coin = coins[coinId];
+        if (!coin || coin.isRugPulled || !playerWallet || coin.liquidityLocked) return;
 
         // Sell all dev tokens
-        // AMM pricing: constant product x * y = k
-        const x = activeCoin.reserveToken;
-        const y = activeCoin.reserveCurrency;
-        const dx = activeCoin.developerTokens;
+        const x = coin.reserveToken;
+        const y = coin.reserveCurrency;
+        const dx = coin.developerTokens;
 
         // Fee = 0 for dev selling
         const dy = y - (x * y) / (x + dx);
 
-        const updatedHolders = { ...coinHolders };
+        const updatedHolders = { ...coinHolders[coinId] };
         if (updatedHolders[playerWallet.address]) {
             updatedHolders[playerWallet.address].balance = 0;
         }
 
         set({
           playerMoney: playerMoney + dy,
-          activeCoin: {
-            ...activeCoin,
-            isRugPulled: true,
-            developerTokens: 0,
-            reserveToken: x + dx,
-            reserveCurrency: y - dy,
-            hype: 0,
+          coins: {
+            ...coins,
+            [coinId]: {
+              ...coin,
+              isRugPulled: true,
+              developerTokens: 0,
+              reserveToken: x + dx,
+              reserveCurrency: y - dy,
+              hype: 0,
+            }
           },
-          coinHolders: updatedHolders
+          coinHolders: { ...coinHolders, [coinId]: updatedHolders }
         });
       },
 
+      fastTrackList: (coinId) => {
+        const { coins, playerMoney, followers } = get();
+        const coin = coins[coinId];
+        if (!coin || coin.isRugPulled || coin.isListedCMC || playerMoney < 500) return;
+
+        set({
+          playerMoney: playerMoney - 500,
+          followers: followers + 5000,
+          coins: {
+            ...coins,
+            [coinId]: {
+               ...coin,
+               isListedCMC: true,
+               hype: Math.min(100, coin.hype + 40)
+            }
+          }
+        });
+      },
+
+      startAirdrop: (coinId, amount) => {
+         const { coins, coinHolders, playerWallet } = get();
+         const coin = coins[coinId];
+         if (!coin || coin.isRugPulled || !playerWallet) return;
+         if (coin.developerTokens < amount) return;
+
+         // Deduct from dev, add to airdrop pool
+         const updatedHolders = { ...coinHolders[coinId] };
+         if (updatedHolders[playerWallet.address]) {
+             updatedHolders[playerWallet.address].balance -= amount;
+         }
+
+         set({
+            coins: {
+               ...coins,
+               [coinId]: {
+                  ...coin,
+                  developerTokens: coin.developerTokens - amount,
+                  airdropActive: true,
+                  airdropRemaining: amount
+               }
+            },
+            coinHolders: { ...coinHolders, [coinId]: updatedHolders }
+         });
+      },
+
       updateMarket: () => {
-        const { activeCoin, priceHistory, coinHolders, playerMoney, newsAlert, followers } = get();
-        if (!activeCoin || activeCoin.isRugPulled) return;
+        const { coins, priceHistory, coinHolders, playerWallet, playerMoney, newsAlert, followers } = get();
 
         const now = Date.now();
 
-        let newReserveToken = activeCoin.reserveToken;
-        let newReserveCurrency = activeCoin.reserveCurrency;
-        let newHype = activeCoin.hype;
-        let volume = 0;
         let newNewsAlert = newsAlert;
         let newFollowers = followers;
         let newPlayerMoney = playerMoney;
-        const updatedHolders = { ...coinHolders };
-
-        // Helper to pick a random non-player, non-LP bot
-        const botAddresses = Object.keys(updatedHolders).filter(addr =>
-            !updatedHolders[addr].isPlayer && addr !== 'liquidity_pool'
-        );
+        const newCoins = { ...coins };
+        const newPriceHistory = { ...priceHistory };
+        const newCoinHolders = { ...coinHolders };
 
         // --- RANDOM NEWS EVENTS (FOMO / FUD) ---
         // 0.5% chance per tick to generate news if no active news
@@ -229,105 +282,112 @@ export const useGameStore = create<GameState>()(
             const event = events[Math.floor(Math.random() * events.length)];
             newNewsAlert = event.text;
             if (event.effect === 'pump') {
-                newHype = Math.min(100, newHype + 30);
                 newFollowers += Math.floor(Math.random() * 500);
             } else {
-                newHype = Math.max(1, newHype - 30);
                 newFollowers = Math.max(0, newFollowers - Math.floor(Math.random() * 200));
             }
         }
 
-        // --- BOT SIMULATION ---
-        // Constant product: k = reserveToken * reserveCurrency
-        const k = newReserveToken * newReserveCurrency;
+        // Loop through all active coins
+        for (const coinId in newCoins) {
+            const coin = newCoins[coinId];
+            if (coin.isRugPulled) continue;
 
-        // Hype decay (slower decay if locked liquidity)
-        const decayRate = activeCoin.liquidityLocked ? 0.2 : 0.5;
-        newHype = Math.max(1, newHype - decayRate); // Decay per tick
+            let newReserveToken = coin.reserveToken;
+            let newReserveCurrency = coin.reserveCurrency;
+            let newHype = coin.hype;
+            let volume = 0;
+            const updatedHolders = { ...newCoinHolders[coinId] };
 
-        // Base market activity on hype
-        const activityLevel = Math.max(0.01, newHype / 100);
-
-        // Determine if buy or sell pressure is higher
-        // Locked liquidity gives base trust (+10% buy probability)
-        const trustBonus = activeCoin.liquidityLocked ? 0.1 : 0;
-        const buyProbability = 0.2 + (newHype / 200) + trustBonus; // ranges from ~0.2 to ~0.8
-
-        const isBuy = Math.random() < buyProbability;
-
-        // Volatility multiplier to make charts less "straight"
-        // Sometimes trades are small, sometimes large panic buys/sells
-        const volatility = Math.random() > 0.8 ? (Math.random() * 0.15 + 0.05) : (Math.random() * 0.02 + 0.005);
-        const tradePct = volatility * activityLevel;
-
-        let botTokensGained = 0;
-        let botTokensLost = 0;
-        let taxCollected = 0;
-
-        if (isBuy) {
-            // Bot Buys (Adds currency, removes token)
-            let dy = newReserveCurrency * tradePct; // Currency spent by bot
-
-            // Tax application (Tax on buys means less tokens received by bot, tax value goes to dev in USD)
-            if (activeCoin.taxRate > 0) {
-                const taxValue = dy * (activeCoin.taxRate / 100);
-                taxCollected += taxValue;
-                dy = dy - taxValue; // Only remaining goes to pool
+            // Apply news effect to hype if any
+            if (!newsAlert && newNewsAlert) {
+                // Determine if pump or dump roughly based on followers change logic above
+                if (newFollowers > followers) {
+                    newHype = Math.min(100, newHype + 30);
+                } else {
+                    newHype = Math.max(1, newHype - 30);
+                }
             }
 
-            const newY = newReserveCurrency + dy;
-            const newX = k / newY;
-            const tokensReceived = newReserveToken - newX;
+            const botAddresses = Object.keys(updatedHolders).filter(addr =>
+                !updatedHolders[addr].isPlayer && addr !== 'liquidity_pool'
+            );
 
-            newReserveCurrency = newY;
-            newReserveToken = newX;
-            volume += dy;
-            botTokensGained += tokensReceived;
-        } else {
-            // Bot Sells (Adds token, removes currency)
-            const dx = newReserveToken * tradePct; // Tokens sold
-            const newX = newReserveToken + dx;
-            const newY = k / newX;
-            let dy = newReserveCurrency - newY; // Currency received by bot
+            // --- AIRDROP PROCESSING ---
+            if (coin.airdropActive && coin.airdropRemaining && coin.airdropRemaining > 0) {
+                const airdropAmount = Math.min(coin.airdropRemaining, coin.totalSupply * 0.005); // drop 0.5% max per tick
+                coin.airdropRemaining -= airdropAmount;
 
-            // Tax application on sells (Bot gets less USD, dev gets USD tax)
-            if (activeCoin.taxRate > 0) {
-                const taxValue = dy * (activeCoin.taxRate / 100);
-                taxCollected += taxValue;
-                dy = dy - taxValue;
+                // Give it to a random bot or create a new one
+                if (Math.random() > 0.5 && botAddresses.length > 0) {
+                    const recipient = botAddresses[Math.floor(Math.random() * botAddresses.length)];
+                    updatedHolders[recipient].balance += airdropAmount;
+                } else {
+                    const newBotAddr = generateFakeAddress();
+                    updatedHolders[newBotAddr] = {
+                        address: newBotAddr,
+                        name: `Airdrop_Hunter_${Math.floor(Math.random()*1000)}`,
+                        balance: airdropAmount,
+                        isPlayer: false
+                    };
+                }
+
+                // Airdrop boosts hype massively
+                newHype = Math.min(100, newHype + 5);
+
+                if (coin.airdropRemaining <= 0) {
+                    coin.airdropActive = false;
+                }
             }
 
-            newReserveToken = newX;
-            newReserveCurrency = newY;
-            volume += dy;
-            botTokensLost += dx;
-        }
+            // --- BOT SIMULATION ---
+            const k = newReserveToken * newReserveCurrency;
 
-        // Random Whale Action (More aggressive now, 2% chance)
-        if (Math.random() < 0.02) {
-            const whaleAction = Math.random() < buyProbability ? 'buy' : 'sell';
-            const whaleTradePct = Math.random() * 0.2 + 0.05; // 5% to 25% of pool
-            if (whaleAction === 'buy') {
-                let dy = newReserveCurrency * whaleTradePct;
-                if (activeCoin.taxRate > 0) {
-                    const taxValue = dy * (activeCoin.taxRate / 100);
+            // Hype decay
+            const decayRate = coin.liquidityLocked ? 0.2 : 0.5;
+            newHype = Math.max(1, newHype - decayRate);
+
+            const activityLevel = Math.max(0.01, newHype / 100);
+
+            // Determine if buy or sell pressure is higher
+            const trustBonus = coin.liquidityLocked ? 0.1 : 0;
+            const listedBonus = coin.isListedCMC ? 0.15 : 0;
+            const buyProbability = 0.2 + (newHype / 200) + trustBonus + listedBonus;
+
+            const isBuy = Math.random() < buyProbability;
+            const volatility = Math.random() > 0.8 ? (Math.random() * 0.15 + 0.05) : (Math.random() * 0.02 + 0.005);
+            const tradePct = volatility * activityLevel;
+
+            let botTokensGained = 0;
+            let botTokensLost = 0;
+            let taxCollected = 0;
+
+            // Anti-sniper tax (99%) if within 10s of creation
+            const isAntiSniperActive = coin.antiSniper && (now - coin.createdAt < 10000);
+            const currentTaxRate = isAntiSniperActive ? 99 : coin.taxRate;
+
+            if (isBuy) {
+                let dy = newReserveCurrency * tradePct;
+                if (currentTaxRate > 0) {
+                    const taxValue = dy * (currentTaxRate / 100);
                     taxCollected += taxValue;
                     dy = dy - taxValue;
                 }
                 const newY = newReserveCurrency + dy;
                 const newX = k / newY;
                 const tokensReceived = newReserveToken - newX;
+
                 newReserveCurrency = newY;
                 newReserveToken = newX;
                 volume += dy;
                 botTokensGained += tokensReceived;
             } else {
-                const dx = newReserveToken * whaleTradePct;
+                const dx = newReserveToken * tradePct;
                 const newX = newReserveToken + dx;
                 const newY = k / newX;
                 let dy = newReserveCurrency - newY;
-                if (activeCoin.taxRate > 0) {
-                    const taxValue = dy * (activeCoin.taxRate / 100);
+                if (currentTaxRate > 0) {
+                    const taxValue = dy * (currentTaxRate / 100);
                     taxCollected += taxValue;
                     dy = dy - taxValue;
                 }
@@ -336,72 +396,102 @@ export const useGameStore = create<GameState>()(
                 volume += dy;
                 botTokensLost += dx;
             }
-        }
 
-        // Add collected tax to player's money
-        if (taxCollected > 0) {
-            newPlayerMoney += taxCollected;
-        }
-
-        // Distribute token changes to random bots
-        if (botAddresses.length > 0) {
-            if (botTokensGained > 0) {
-                const buyerAddr = botAddresses[Math.floor(Math.random() * botAddresses.length)];
-                updatedHolders[buyerAddr].balance += botTokensGained;
+            if (Math.random() < 0.02) {
+                const whaleAction = Math.random() < buyProbability ? 'buy' : 'sell';
+                const whaleTradePct = Math.random() * 0.2 + 0.05;
+                if (whaleAction === 'buy') {
+                    let dy = newReserveCurrency * whaleTradePct;
+                    if (currentTaxRate > 0) {
+                        const taxValue = dy * (currentTaxRate / 100);
+                        taxCollected += taxValue;
+                        dy = dy - taxValue;
+                    }
+                    const newY = newReserveCurrency + dy;
+                    const newX = k / newY;
+                    const tokensReceived = newReserveToken - newX;
+                    newReserveCurrency = newY;
+                    newReserveToken = newX;
+                    volume += dy;
+                    botTokensGained += tokensReceived;
+                } else {
+                    const dx = newReserveToken * whaleTradePct;
+                    const newX = newReserveToken + dx;
+                    const newY = k / newX;
+                    let dy = newReserveCurrency - newY;
+                    if (currentTaxRate > 0) {
+                        const taxValue = dy * (currentTaxRate / 100);
+                        taxCollected += taxValue;
+                        dy = dy - taxValue;
+                    }
+                    newReserveToken = newX;
+                    newReserveCurrency = newY;
+                    volume += dy;
+                    botTokensLost += dx;
+                }
             }
-            if (botTokensLost > 0) {
-                // Find a bot that has enough to sell, or just deduct from random
-                const sellers = botAddresses.filter(addr => updatedHolders[addr].balance >= botTokensLost);
-                const sellerAddr = sellers.length > 0
-                    ? sellers[Math.floor(Math.random() * sellers.length)]
-                    : botAddresses[Math.floor(Math.random() * botAddresses.length)];
 
-                // If they don't have enough to sell the full amount, they sell what they have and we assume a new bot steps in for the rest (simplification)
-                updatedHolders[sellerAddr].balance = Math.max(0, updatedHolders[sellerAddr].balance - botTokensLost);
+            // Tax to developer wallet (only if player owns the coin)
+            if (taxCollected > 0 && coin.ownerAddress === playerWallet?.address) {
+                newPlayerMoney += taxCollected;
             }
-        }
 
-        // Update LP Balance
-        if (updatedHolders['liquidity_pool']) {
-            updatedHolders['liquidity_pool'].balance = newReserveToken;
-        }
+            if (botAddresses.length > 0) {
+                if (botTokensGained > 0) {
+                    const buyerAddr = botAddresses[Math.floor(Math.random() * botAddresses.length)];
+                    updatedHolders[buyerAddr].balance += botTokensGained;
+                }
+                if (botTokensLost > 0) {
+                    const sellers = botAddresses.filter(addr => updatedHolders[addr].balance >= botTokensLost);
+                    const sellerAddr = sellers.length > 0
+                        ? sellers[Math.floor(Math.random() * sellers.length)]
+                        : botAddresses[Math.floor(Math.random() * botAddresses.length)];
+                    updatedHolders[sellerAddr].balance = Math.max(0, updatedHolders[sellerAddr].balance - botTokensLost);
+                }
+            }
 
-        const newPrice = newReserveCurrency / newReserveToken;
+            if (updatedHolders['liquidity_pool']) {
+                updatedHolders['liquidity_pool'].balance = newReserveToken;
+            }
 
-        // Update ATH / ATL
-        const newAth = Math.max(activeCoin.ath, newPrice);
-        const newAtl = Math.min(activeCoin.atl, newPrice);
+            const newPrice = newReserveCurrency / newReserveToken;
+            const newAth = Math.max(coin.ath, newPrice);
+            const newAtl = Math.min(coin.atl, newPrice);
 
-        // Update Price History (Always record 1s tick data)
-        const lastPoint = priceHistory[priceHistory.length - 1];
-        let updatedHistory = [...priceHistory];
+            const coinHistory = newPriceHistory[coinId] || [];
+            const lastPoint = coinHistory.length > 0 ? coinHistory[coinHistory.length - 1] : { close: newPrice, time: now, high: newPrice, low: newPrice, open: newPrice, volume: 0 };
 
-        // Push a new point every update (which is ~1s)
-        updatedHistory.push({
-            time: now,
-            open: lastPoint.close,
-            high: Math.max(lastPoint.close, newPrice),
-            low: Math.min(lastPoint.close, newPrice),
-            close: newPrice,
-            volume: volume
-        });
+            let updatedHistory = [...coinHistory];
+            updatedHistory.push({
+                time: now,
+                open: lastPoint.close,
+                high: Math.max(lastPoint.close, newPrice),
+                low: Math.min(lastPoint.close, newPrice),
+                close: newPrice,
+                volume: volume
+            });
 
-        // Keep up to 600 points (10 minutes of 1s ticks) to allow for 1m aggregation views
-        if (updatedHistory.length > 600) {
-            updatedHistory = updatedHistory.slice(-600);
-        }
+            if (updatedHistory.length > 600) {
+                updatedHistory = updatedHistory.slice(-600);
+            }
 
-        set({
-            activeCoin: {
-                ...activeCoin,
+            // Save back to local vars
+            newCoins[coinId] = {
+                ...coin,
                 reserveToken: newReserveToken,
                 reserveCurrency: newReserveCurrency,
                 hype: newHype,
                 ath: newAth,
                 atl: newAtl
-            },
-            priceHistory: updatedHistory,
-            coinHolders: updatedHolders,
+            };
+            newPriceHistory[coinId] = updatedHistory;
+            newCoinHolders[coinId] = updatedHolders;
+        }
+
+        set({
+            coins: newCoins,
+            priceHistory: newPriceHistory,
+            coinHolders: newCoinHolders,
             playerMoney: newPlayerMoney,
             newsAlert: newNewsAlert,
             followers: newFollowers
@@ -411,11 +501,15 @@ export const useGameStore = create<GameState>()(
       resetGame: () => {
         set({
           playerMoney: INITIAL_MONEY,
-          activeCoin: null,
-          priceHistory: [],
+          playerWallet: null,
           currency: 'USD',
+          followers: 0,
+          coins: {},
+          activeCoinId: null,
+          priceHistory: {},
           coinHolders: {},
-          playerWallet: null
+          socialPosts: {},
+          newsAlert: null
         });
       }
     }),

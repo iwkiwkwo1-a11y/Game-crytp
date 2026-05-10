@@ -1,45 +1,101 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useGameStore } from '../store/gameStore';
-import { Flame, Skull } from 'lucide-react';
+import { Flame, Skull, Gift, Rocket } from 'lucide-react';
+import { formatMoney } from './AppLayout';
 
 export default function PlayerActions() {
-  const activeCoin = useGameStore((state) => state.activeCoin);
+  const activeCoinId = useGameStore((state) => state.activeCoinId);
+  const coins = useGameStore((state) => state.coins);
+  const activeCoin = activeCoinId ? coins[activeCoinId] : null;
+  const playerMoney = useGameStore((state) => state.playerMoney);
+  const currency = useGameStore((state) => state.currency);
   const burnTokens = useGameStore((state) => state.burnTokens);
   const rugPull = useGameStore((state) => state.rugPull);
+  const fastTrackList = useGameStore((state) => state.fastTrackList);
+  const startAirdrop = useGameStore((state) => state.startAirdrop);
+
+  const [airdropAmount, setAirdropAmount] = useState<string>('');
 
   if (!activeCoin || activeCoin.isRugPulled) return null;
 
   const handleBurn = () => {
     // Burns 10% of developer tokens
     const burnAmount = activeCoin.developerTokens * 0.1;
-    if (burnAmount > 0) {
-      burnTokens(burnAmount);
-      // Removed old marketing call, burning now relies on organic hype or posting about it on the Social Feed
+    if (burnAmount > 0 && activeCoinId) {
+      burnTokens(activeCoinId, burnAmount);
     }
+  };
+
+  const handleAirdrop = () => {
+    const amount = Number(airdropAmount);
+    if (amount > 0 && amount <= activeCoin.developerTokens && activeCoinId) {
+        startAirdrop(activeCoinId, amount);
+        setAirdropAmount('');
+    }
+  };
+
+  const handleFastTrack = () => {
+      if (playerMoney >= 500 && activeCoinId) {
+          fastTrackList(activeCoinId);
+      }
   };
 
   const handleRugPull = () => {
     const confirm = window.confirm(
       "Are you sure you want to RUG PULL? You will sell all your dev tokens instantly, crushing the price and ending this coin forever."
     );
-    if (confirm) {
-      rugPull();
+    if (confirm && activeCoinId) {
+      rugPull(activeCoinId);
     }
   };
 
   return (
-    <div className="bg-[#181a20] border-t border-gray-800 p-4 shrink-0 flex flex-col sm:flex-row items-center justify-between gap-4">
-      <div className="flex gap-4">
+    <div className="bg-[#181a20] border-t border-gray-800 p-4 shrink-0 flex flex-col xl:flex-row items-center justify-between gap-4">
+      <div className="flex flex-wrap gap-4 items-center">
+
         <button
           onClick={handleBurn}
           disabled={activeCoin.developerTokens <= 0}
-          className="flex items-center justify-center gap-2 bg-orange-600 hover:bg-orange-700 disabled:bg-gray-700 disabled:text-gray-500 text-white px-4 py-2 rounded-lg font-medium transition-colors w-full sm:w-auto"
+          className="flex items-center justify-center gap-2 bg-orange-600 hover:bg-orange-700 disabled:bg-gray-700 disabled:text-gray-500 text-white px-4 py-2 rounded-lg font-medium transition-colors w-full sm:w-auto text-sm"
         >
-          <Flame size={18} />
+          <Flame size={16} />
           <span>Burn Dev Tokens (10%)</span>
         </button>
+
+        {!activeCoin.isListedCMC && (
+            <button
+              onClick={handleFastTrack}
+              disabled={playerMoney < 500}
+              className="flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-700 disabled:text-gray-500 text-white px-4 py-2 rounded-lg font-medium transition-colors w-full sm:w-auto text-sm"
+              title="Pay $500 for instant CMC Listing (Massive Hype & Followers)"
+            >
+              <Rocket size={16} />
+              <span>Fast-Track CMC ({formatMoney(500, currency)})</span>
+            </button>
+        )}
+
+        <div className="flex items-center gap-2 bg-gray-800 p-1 rounded-lg w-full sm:w-auto">
+            <input
+                type="number"
+                value={airdropAmount}
+                onChange={(e) => setAirdropAmount(e.target.value)}
+                placeholder="Tokens to airdrop"
+                className="bg-transparent text-white px-2 py-1 outline-none text-sm w-32"
+                min={1}
+                max={activeCoin.developerTokens}
+            />
+            <button
+                onClick={handleAirdrop}
+                disabled={!airdropAmount || activeCoin.airdropActive || Number(airdropAmount) > activeCoin.developerTokens}
+                className="flex items-center justify-center gap-1 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-700 disabled:text-gray-500 text-white px-3 py-1.5 rounded-md font-medium transition-colors text-sm"
+            >
+                <Gift size={14} />
+                <span>{activeCoin.airdropActive ? 'Dropping...' : 'Airdrop'}</span>
+            </button>
+        </div>
+
       </div>
 
       <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto">

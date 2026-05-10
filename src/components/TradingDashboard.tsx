@@ -8,10 +8,14 @@ import { format } from 'date-fns';
 import SocialFeed from './SocialFeed';
 
 export default function TradingDashboard() {
-  const activeCoin = useGameStore((state) => state.activeCoin);
-  const priceHistory = useGameStore((state) => state.priceHistory);
+  const activeCoinId = useGameStore((state) => state.activeCoinId);
+  const coins = useGameStore((state) => state.coins);
+  const activeCoin = activeCoinId ? coins[activeCoinId] : null;
+  const priceHistoryMap = useGameStore((state) => state.priceHistory);
+  const priceHistory = activeCoinId && priceHistoryMap[activeCoinId] ? priceHistoryMap[activeCoinId] : [];
   const currency = useGameStore((state) => state.currency);
-  const coinHolders = useGameStore((state) => state.coinHolders);
+  const coinHoldersMap = useGameStore((state) => state.coinHolders);
+  const coinHolders = activeCoinId && coinHoldersMap[activeCoinId] ? coinHoldersMap[activeCoinId] : {};
   const chartTimeframe = useGameStore((state) => state.chartTimeframe);
   const setTimeframe = useGameStore((state) => state.setTimeframe);
   const [activeTab, setActiveTab] = useState<'orderbook' | 'holders'>('orderbook');
@@ -186,10 +190,10 @@ export default function TradingDashboard() {
                 <h2 className="text-5xl font-black text-red-500 mb-4 animate-bounce">RUG PULLED!</h2>
                 <p className="text-gray-300 text-lg mb-6">You took the money and ran. The coin is dead.</p>
                 <button
-                  onClick={() => useGameStore.setState({ activeCoin: null, priceHistory: [] })}
+                  onClick={() => useGameStore.setState({ activeCoinId: null })}
                   className="bg-[#fcd535] hover:bg-[#fcd535]/90 text-black font-bold py-3 px-6 rounded-lg transition-colors shadow-lg"
                 >
-                  Deploy Another Coin
+                  Back to Portfolio
                 </button>
              </div>
           )}
