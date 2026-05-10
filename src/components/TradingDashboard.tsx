@@ -3,10 +3,9 @@
 import React, { useMemo, useState } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { formatMoney } from './AppLayout';
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { format } from 'date-fns';
 import SocialFeed from './SocialFeed';
 import SwapPanel from './SwapPanel';
+import TradingViewChart from './TradingViewChart';
 
 export default function TradingDashboard() {
   const activeCoinId = useGameStore((state) => state.activeCoinId);
@@ -61,27 +60,19 @@ export default function TradingDashboard() {
             currentCandle.volume += point.volume;
         } else {
             // New interval, push old and start new
-            aggregated.push({
-                ...currentCandle,
-                displayTime: format(new Date(currentCandle.time), chartTimeframe === '1m' ? 'HH:mm' : 'HH:mm:ss'),
-                displayPrice: currency === 'USD' ? currentCandle.close : currentCandle.close * 15000
-            });
+            aggregated.push({ ...currentCandle });
             currentCandle = { ...point };
             currentIntervalStart = pointIntervalStart;
         }
     }
 
     // Push the last candle
-    aggregated.push({
-        ...currentCandle,
-        displayTime: format(new Date(currentCandle.time), chartTimeframe === '1m' ? 'HH:mm' : 'HH:mm:ss'),
-        displayPrice: currency === 'USD' ? currentCandle.close : currentCandle.close * 15000
-    });
+    aggregated.push({ ...currentCandle });
 
-    // Limit to display 100 candles on UI so it's not too squished
-    return aggregated.slice(-100);
+    // Limit to reasonable amount for performance, TradingView handles compression
+    return aggregated.slice(-500);
 
-  }, [priceHistoryMap, activeCoinId, currency, chartTimeframe]);
+  }, [priceHistoryMap, activeCoinId, chartTimeframe]);
 
   // Fake Orderbook generation based on current price (Memoized to prevent impurity during render)
   // Ensure we check for activeCoin existence to avoid errors when activeCoin is null
@@ -108,9 +99,6 @@ export default function TradingDashboard() {
   const isUp = history.length >= 2
     ? history[history.length - 1].close >= history[history.length - 2].close
     : true;
-
-  const strokeColor = isUp ? '#0ecc83' : '#f6465d';
-  const fillColor = isUp ? 'url(#colorUp)' : 'url(#colorDown)';
 
   const formatPriceDecimals = (price: number) => {
     const val = currency === 'USD' ? price : price * 15000;
@@ -200,52 +188,14 @@ export default function TradingDashboard() {
              </div>
           )}
 
-          <div className="flex-1 w-full h-[300px] lg:h-auto p-2">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="colorUp" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#0ecc83" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#0ecc83" stopOpacity={0}/>
-                  </linearGradient>
-                  <linearGradient id="colorDown" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#f6465d" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#f6465d" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <XAxis
-                  dataKey="displayTime"
-                  stroke="#474d57"
-                  tick={{fill: '#848e9c', fontSize: 12}}
-                  tickMargin={10}
-                  minTickGap={30}
+          <div className="flex-1 w-full relative">
+            <div className="absolute inset-0">
+                <TradingViewChart
+                    data={chartData}
+                    currency={currency}
+                    timeframe={chartTimeframe}
                 />
-                <YAxis
-                  domain={['auto', 'auto']}
-                  stroke="#474d57"
-                  tick={{fill: '#848e9c', fontSize: 12}}
-                  orientation="right"
-                  tickFormatter={(val) => formatPriceDecimals(val)}
-                />
-                <Tooltip
-                  contentStyle={{ backgroundColor: '#181a20', borderColor: '#2b3139', color: '#eaecef', borderRadius: '8px' }}
-                  itemStyle={{ color: '#eaecef', fontWeight: 'bold' }}
-                  formatter={(value: unknown) => [formatPriceDecimals(Number(value)), 'Price']}
-                  labelStyle={{ color: '#848e9c', marginBottom: '4px' }}
-                  animationDuration={150}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="displayPrice"
-                  stroke={strokeColor}
-                  strokeWidth={2}
-                  fillOpacity={1}
-                  fill={fillColor}
-                  isAnimationActive={true}
-                  animationDuration={300}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
+            </div>
           </div>
         </div>
       </div>
