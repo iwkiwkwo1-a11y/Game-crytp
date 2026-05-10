@@ -52,6 +52,8 @@ export interface SocialPost {
   time: number;
   content: string;
   likes: number;
+  comments: string[];
+  isKol?: boolean; // True if posted by an influencer/bot instead of the player
 }
 
 export type Timeframe = '1s' | '10s' | '1m';

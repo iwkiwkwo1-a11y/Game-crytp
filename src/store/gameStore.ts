@@ -168,11 +168,25 @@ export const useGameStore = create<GameState>()(
          const botFarmMultiplier = 1 + (upgrades.botFarm * 0.5); // +50% likes per level
          const likes = Math.floor(baseLikes * botFarmMultiplier);
 
+         // Generate funny bot comments
+         const numComments = Math.min(3, Math.floor(Math.random() * (likes / 10 + 1)));
+         const commentBank = [
+             "LFG!!! 🚀", "Dev is cooking 🔥", "Aped in my life savings",
+             "To the moon!", "Based dev", "We like the coin",
+             "Wen Binance?", "Bullish", "Wagmi", "Holding till $1"
+         ];
+
+         const generatedComments = [];
+         for(let i=0; i<numComments; i++){
+             generatedComments.push(commentBank[Math.floor(Math.random() * commentBank.length)]);
+         }
+
          const newPost: SocialPost = {
              id: Date.now().toString(),
              time: Date.now(),
              content,
-             likes
+             likes,
+             comments: generatedComments
          };
 
          // Posting boosts hype slightly and gains followers
@@ -537,7 +551,7 @@ export const useGameStore = create<GameState>()(
             }
 
             const botAddresses = Object.keys(updatedHolders).filter(addr =>
-                !updatedHolders[addr].isPlayer && addr !== 'liquidity_pool'
+                !updatedHolders[addr].isPlayer && addr !== 'liquidity_pool' && addr !== 'dead_burn_address'
             );
 
             // --- AIRDROP PROCESSING ---
@@ -652,6 +666,76 @@ export const useGameStore = create<GameState>()(
                     title: '🦍 FOMO Apes Arrived!',
                     message: `The hype is real! Apes just bought $${dy.toFixed(0)} of ${coin.symbol}!`,
                     type: 'success' as const,
+                    timestamp: Date.now()
+                }].slice(-5) });
+            }
+
+            // 5. Buyback & Burn Bot
+            // 1% chance for dev-friendly bot to buy and burn tokens, reducing circulating supply
+            let tokensBurned = 0;
+            if (isMyCoin && Math.random() < 0.01) {
+                const dy = newReserveCurrency * (Math.random() * 0.05 + 0.01); // 1-5% pool buy
+                const newY = newReserveCurrency + dy;
+                const newX = k / newY;
+                tokensBurned = newReserveToken - newX;
+
+                newReserveCurrency = newY;
+                newReserveToken = newX;
+                volume += dy;
+
+                // Directly reduce total and circulating supply
+                coin.totalSupply -= tokensBurned;
+                coin.circulatingSupply -= tokensBurned;
+
+                // Move them to a dead address visually
+                if (!updatedHolders['dead_burn_address']) {
+                    updatedHolders['dead_burn_address'] = {
+                        address: 'dead_burn_address',
+                        name: '🔥 Dead Address',
+                        balance: 0,
+                        isPlayer: false
+                    };
+                }
+                updatedHolders['dead_burn_address'].balance += tokensBurned;
+
+                const { toasts } = get();
+                set({ toasts: [...toasts, {
+                    id: Date.now().toString() + Math.random(),
+                    title: '🔥 Buyback & Burn!',
+                    message: `A community bot burned ${tokensBurned.toLocaleString(undefined, {maximumFractionDigits:0})} tokens!`,
+                    type: 'success' as const,
+                    timestamp: Date.now()
+                }].slice(-5) });
+            }
+
+            // 6. Social Media KOL Shill Event
+            // 1% chance per tick to get a free influencer post
+            if (isMyCoin && Math.random() < 0.01) {
+                const { socialPosts } = get();
+                const kolLikes = Math.floor(newFollowers * (Math.random() * 1.5 + 0.5) + newHype * 5);
+                const newPost: SocialPost = {
+                    id: Date.now().toString() + Math.random(),
+                    time: Date.now(),
+                    content: `Just found $${coin.symbol}. Dev looks absolutely based. Aping hard! 🚀`,
+                    likes: kolLikes,
+                    comments: ["Legendary call", "Buying bags now", "To the moon!"],
+                    isKol: true
+                };
+
+                // Add post to state
+                set({
+                    socialPosts: { ...socialPosts, [coinId]: [newPost, ...(socialPosts[coinId] || [])] }
+                });
+
+                newHype = Math.min(100, newHype + 15); // Massive hype injection
+                newFollowers += Math.floor(Math.random() * 200 + 50);
+
+                const { toasts } = get();
+                set({ toasts: [...toasts, {
+                    id: Date.now().toString() + Math.random(),
+                    title: '📱 Influencer Shill!',
+                    message: `A big influencer just posted about ${coin.symbol}! Hype incoming!`,
+                    type: 'info' as const,
                     timestamp: Date.now()
                 }].slice(-5) });
             }
@@ -819,9 +903,11 @@ export const useGameStore = create<GameState>()(
                 // DIVERSITY: 40% chance the buyer is a completely new wallet, otherwise an existing bot
                 if (Math.random() < 0.4 || botAddresses.length === 0) {
                     const newBuyerAddr = generateFakeAddress();
+                    // 10% chance for a new buyer to be a Diamond Hand (never sells)
+                    const isDiamondHand = Math.random() < 0.1;
                     updatedHolders[newBuyerAddr] = {
                         address: newBuyerAddr,
-                        name: `Trader_${Math.floor(Math.random()*10000)}`,
+                        name: isDiamondHand ? `💎 Hodler_${Math.floor(Math.random()*1000)}` : `Trader_${Math.floor(Math.random()*10000)}`,
                         balance: botTokensGained,
                         isPlayer: false
                     };
@@ -831,9 +917,11 @@ export const useGameStore = create<GameState>()(
                 }
             }
             if (botTokensLost > 0 && botAddresses.length > 0) {
-                const sellers = botAddresses.filter(addr => updatedHolders[addr].balance >= botTokensLost);
+                // Diamond Hands refuse to sell
+                const sellers = botAddresses.filter(addr => updatedHolders[addr].balance >= botTokensLost && !updatedHolders[addr].name.includes('💎'));
                 const sellerAddr = sellers.length > 0
                     ? sellers[Math.floor(Math.random() * sellers.length)]
+                    // If no one else can sell, a diamond hand breaks or a random bot is forced
                     : botAddresses[Math.floor(Math.random() * botAddresses.length)];
                 updatedHolders[sellerAddr].balance = Math.max(0, updatedHolders[sellerAddr].balance - botTokensLost);
             }

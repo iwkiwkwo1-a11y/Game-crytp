@@ -667,3 +667,4 @@ https://nextjs.org/docs/messages/module-not-found
   55 |             bottomColor: 'rgba(14, 204, 131, 0)',
   56 |             lineColor: '#0ecc83',
  GET / 200 in 78ms (next.js: 11ms, application-code: 67ms)
+ GET / 200 in 1531ms (next.js: 117ms, application-code: 1414ms)

@@ -82,24 +82,41 @@ export default function SocialFeed() {
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-1 text-sm">
-                    <span className="font-bold text-white">Official {activeCoin.symbol}</span>
+                    <span className="font-bold text-white">
+                        {post.isKol ? 'Crypto Influencer 🐳' : `Official ${activeCoin.symbol}`}
+                    </span>
                     <span className="text-gray-500 text-xs">· Just now</span>
                   </div>
                   <p className="text-gray-300 text-sm mt-1">{post.content}</p>
 
-                  <div className="flex items-center gap-6 mt-3 text-gray-500 text-xs">
+                  <div className="flex items-center gap-6 mt-3 text-gray-500 text-xs mb-3">
                     <div className="flex items-center gap-1 hover:text-[#fcd535] cursor-pointer transition-colors">
                       <Heart size={14} className={post.likes > 0 ? "fill-[#f6465d] text-[#f6465d]" : ""} />
                       <span className={post.likes > 0 ? "text-[#f6465d]" : ""}>{post.likes}</span>
                     </div>
                     <div className="flex items-center gap-1 hover:text-[#fcd535] cursor-pointer transition-colors">
                       <MessageSquare size={14} />
-                      <span>{Math.floor(post.likes / 5)}</span>
+                      <span>{post.comments?.length || 0}</span>
                     </div>
                     <div className="flex items-center gap-1 hover:text-[#fcd535] cursor-pointer transition-colors">
                       <Share2 size={14} />
                     </div>
                   </div>
+
+                  {/* Render Bot Comments */}
+                  {post.comments && post.comments.length > 0 && (
+                      <div className="bg-[#0b0e11] rounded-lg p-2 flex flex-col gap-2 border border-gray-800/50">
+                          {post.comments.map((comment, idx) => (
+                              <div key={idx} className="flex gap-2">
+                                  <div className="w-5 h-5 rounded-full bg-gray-800 shrink-0 flex items-center justify-center text-[10px]">🤖</div>
+                                  <div className="text-xs text-gray-400">
+                                      <span className="font-bold text-gray-300 mr-1">Bot_{Math.floor(Math.random() * 900) + 100}</span>
+                                      {comment}
+                                  </div>
+                              </div>
+                          ))}
+                      </div>
+                  )}
                 </div>
               </div>
             </div>
