@@ -592,7 +592,8 @@ export const useGameStore = create<GameState>()(
             const buyProbability = 0.2 + (newHype / 200) + trustBonus + listedBonus;
 
             const isBuy = Math.random() < buyProbability;
-            const volatility = Math.random() > 0.8 ? (Math.random() * 0.15 + 0.05) : (Math.random() * 0.02 + 0.005);
+            // INCREASED VOLATILITY & TRADE SIZES
+            const volatility = Math.random() > 0.7 ? (Math.random() * 0.25 + 0.10) : (Math.random() * 0.05 + 0.01);
             const tradePct = volatility * activityLevel;
 
             let botTokensGained = 0;
@@ -814,18 +815,27 @@ export const useGameStore = create<GameState>()(
                 }
             }
 
-            if (botAddresses.length > 0) {
-                if (botTokensGained > 0) {
+            if (botTokensGained > 0) {
+                // DIVERSITY: 40% chance the buyer is a completely new wallet, otherwise an existing bot
+                if (Math.random() < 0.4 || botAddresses.length === 0) {
+                    const newBuyerAddr = generateFakeAddress();
+                    updatedHolders[newBuyerAddr] = {
+                        address: newBuyerAddr,
+                        name: `Trader_${Math.floor(Math.random()*10000)}`,
+                        balance: botTokensGained,
+                        isPlayer: false
+                    };
+                } else {
                     const buyerAddr = botAddresses[Math.floor(Math.random() * botAddresses.length)];
                     updatedHolders[buyerAddr].balance += botTokensGained;
                 }
-                if (botTokensLost > 0) {
-                    const sellers = botAddresses.filter(addr => updatedHolders[addr].balance >= botTokensLost);
-                    const sellerAddr = sellers.length > 0
-                        ? sellers[Math.floor(Math.random() * sellers.length)]
-                        : botAddresses[Math.floor(Math.random() * botAddresses.length)];
-                    updatedHolders[sellerAddr].balance = Math.max(0, updatedHolders[sellerAddr].balance - botTokensLost);
-                }
+            }
+            if (botTokensLost > 0 && botAddresses.length > 0) {
+                const sellers = botAddresses.filter(addr => updatedHolders[addr].balance >= botTokensLost);
+                const sellerAddr = sellers.length > 0
+                    ? sellers[Math.floor(Math.random() * sellers.length)]
+                    : botAddresses[Math.floor(Math.random() * botAddresses.length)];
+                updatedHolders[sellerAddr].balance = Math.max(0, updatedHolders[sellerAddr].balance - botTokensLost);
             }
 
             if (updatedHolders['liquidity_pool']) {

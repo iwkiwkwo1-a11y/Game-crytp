@@ -155,7 +155,7 @@ export default function AppLayout({ children, onTabChange, currentTab }: LayoutP
       </nav>
 
       {/* Main Content Area */}
-      <main className="flex-1 flex overflow-hidden">
+      <main className="flex-1 flex overflow-y-auto">
         {children}
       </main>
 

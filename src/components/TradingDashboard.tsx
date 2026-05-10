@@ -121,10 +121,10 @@ export default function TradingDashboard() {
   };
 
   return (
-    <div className="flex-1 flex flex-col lg:flex-row gap-1 p-1 bg-black overflow-hidden">
+    <div className="flex-1 flex flex-col lg:flex-row gap-1 p-1 bg-black overflow-y-auto">
 
       {/* Left Column: Chart & Stats */}
-      <div className="flex-1 flex flex-col gap-1 min-w-0 overflow-hidden">
+      <div className="flex-1 flex flex-col gap-1 min-w-0">
 
         {/* Ticker Banner */}
         <div className="bg-[#181a20] p-4 flex flex-wrap items-center gap-6 border border-gray-800 rounded-sm">
@@ -171,16 +171,16 @@ export default function TradingDashboard() {
         </div>
 
         {/* Main Chart Area */}
-        <div className="flex-1 bg-[#181a20] border border-gray-800 rounded-sm relative flex flex-col">
+        <div className="flex-1 bg-[#181a20] border border-gray-800 rounded-sm relative flex flex-col min-h-[350px] sm:min-h-[450px]">
 
           {/* Chart Toolbar / Timeframes */}
-          <div className="flex items-center gap-2 px-4 py-2 border-b border-gray-800">
+          <div className="flex items-center gap-2 px-4 py-2 border-b border-gray-800 overflow-x-auto shrink-0">
             <span className="text-xs text-gray-500 mr-2">Time:</span>
             {['1s', '10s', '1m'].map((tf) => (
               <button
                 key={tf}
                 onClick={() => setTimeframe(tf as '1s'|'10s'|'1m')}
-                className={`text-xs px-2 py-1 rounded transition-colors ${chartTimeframe === tf ? 'bg-gray-700 text-white font-medium' : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800'}`}
+                className={`text-xs px-2 py-1 rounded transition-colors whitespace-nowrap ${chartTimeframe === tf ? 'bg-gray-700 text-white font-medium' : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800'}`}
               >
                 {tf}
               </button>
@@ -188,9 +188,9 @@ export default function TradingDashboard() {
           </div>
 
           {activeCoin.isRugPulled && (
-             <div className="absolute inset-0 z-10 bg-black/80 flex flex-col items-center justify-center backdrop-blur-sm">
-                <h2 className="text-5xl font-black text-red-500 mb-4 animate-bounce">RUG PULLED!</h2>
-                <p className="text-gray-300 text-lg mb-6">You took the money and ran. The coin is dead.</p>
+             <div className="absolute inset-0 z-10 bg-black/80 flex flex-col items-center justify-center backdrop-blur-sm text-center p-4">
+                <h2 className="text-3xl sm:text-5xl font-black text-red-500 mb-4 animate-bounce">RUG PULLED!</h2>
+                <p className="text-gray-300 text-base sm:text-lg mb-6">You took the money and ran. The coin is dead.</p>
                 <button
                   onClick={() => useGameStore.setState({ activeCoinId: null })}
                   className="bg-[#fcd535] hover:bg-[#fcd535]/90 text-black font-bold py-3 px-6 rounded-lg transition-colors shadow-lg"
@@ -200,7 +200,7 @@ export default function TradingDashboard() {
              </div>
           )}
 
-          <div className="flex-1 w-full min-h-[300px] p-2">
+          <div className="flex-1 w-full h-[300px] lg:h-auto p-2">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
                 <defs>
@@ -251,10 +251,10 @@ export default function TradingDashboard() {
       </div>
 
       {/* Right Column: Order Book & Holders */}
-      <div className="w-full lg:w-80 bg-[#181a20] border border-gray-800 rounded-sm flex flex-col shrink-0">
+      <div className="w-full lg:w-80 bg-[#181a20] border border-gray-800 rounded-sm flex flex-col shrink-0 min-h-[400px]">
 
         {/* Tab Navigation */}
-        <div className="flex border-b border-gray-800">
+        <div className="flex border-b border-gray-800 shrink-0">
           <button
             className={`flex-1 p-3 text-sm font-semibold text-center transition-colors ${activeTab === 'orderbook' ? 'text-white border-b-2 border-[#fcd535]' : 'text-gray-500 hover:text-gray-300'}`}
             onClick={() => setActiveTab('orderbook')}
